@@ -1,6 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
 :root {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Oxanium", sans-serif;
   color: #e7ecf5;
   background: #080d18;
   font-synthesis: none;
@@ -145,7 +144,7 @@ nav button.active {
 }
 h1 {
   font:
-    500 52px/1.09 "Manrope",
+    500 52px/1.09 "Oxanium",
     sans-serif;
   letter-spacing: -2.5px;
   margin: 20px 0;
@@ -253,7 +252,7 @@ aside {
 }
 h2 {
   font:
-    500 30px "Manrope",
+    500 30px "Oxanium",
     sans-serif;
   margin: 6px 0 12px;
   overflow-wrap: anywhere;
@@ -690,4 +689,116 @@ input[type="range"] {
   * {
     scroll-behavior: auto;
   }
+}
+
+/* Still markers and NASA field-guide photography. */
+.nasa-gallery {
+  margin: 18px 0 20px;
+}
+.gallery-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #94a8c2;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+}
+.nasa-gallery figure {
+  margin: 10px 0 0;
+}
+.photo-frame {
+  position: relative;
+  aspect-ratio: 1.25;
+  background: #060a12;
+  border: 1px solid #29374b;
+  border-radius: 7px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.photo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.photo-frame > p {
+  text-align: center;
+  padding: 16px;
+  font-size: 11px;
+}
+.photo-frame button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #09111bdc;
+  border: 1px solid #74829b66;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+.photo-prev {
+  left: 7px;
+}
+.photo-next {
+  right: 7px;
+}
+.nasa-gallery figcaption {
+  padding: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.nasa-gallery a {
+  color: #dce9f7;
+  text-decoration: none;
+}
+.nasa-gallery a:hover {
+  text-decoration: underline;
+}
+.nasa-gallery figcaption small {
+  display: block;
+  color: #8393aa;
+  font-size: 9px;
+  margin-top: 5px;
+}
+.photo-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 8px;
+}
+.photo-pagination button {
+  border: 0;
+  padding: 6px;
+  background: transparent;
+}
+.photo-pagination span {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4e5e76;
+}
+.photo-pagination button[aria-pressed="true"] span {
+  background: #efd095;
+}
+.gallery-note {
+  font-size: 10px;
+  margin: 8px 0;
+  color: #a5b3c7;
+}
+h1 {
+  letter-spacing: -1.5px;
+}
+.intro > h1 {
+  margin-top: 0;
+}
+aside {
+  scrollbar-color: #344258 transparent;
+}
+.brand {
+  letter-spacing: 1.5px;
 }

@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, Component } from "react";
 import { createRoot } from "react-dom/client";
 import Scene from "./Scene";
+import NasaCarousel from "./NasaCarousel";
+import "@fontsource/oxanium/400.css";
+import "@fontsource/oxanium/500.css";
+import "@fontsource/oxanium/600.css";
+import "@fontsource/oxanium/700.css";
 import {
   bodies,
   planets,
@@ -132,9 +137,6 @@ function App() {
         </button>
       </header>
       <section className="intro">
-        <div className="eyebrow">
-          <span /> A LITTLE CURIOSITY. AN ENTIRE UNIVERSE.
-        </div>
         <h1>
           {mode === "Explore" ? (
             <>
@@ -273,14 +275,6 @@ function App() {
               ))}
           </div>
         )}
-        <div
-          className="body-symbol"
-          style={
-            {
-              "--body-color": selected.color || "#b5c3da",
-            } as React.CSSProperties
-          }
-        />
         <div className="eyebrow">
           {selected.parent
             ? `MOON OF ${selected.parent.toUpperCase()}`
@@ -289,6 +283,7 @@ function App() {
               : `PLANET ${planets.findIndex((p) => p.id === selected.id) + 1} / 08`}
         </div>
         <h2>{selected.name}</h2>
+        <NasaCarousel body={selected} />
         <p className="fact">
           {selected.fact ||
             "A natural satellite with its own path around a planetary world."}

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars, Line } from "@react-three/drei";
-import { Group, Vector3, Mesh, CanvasTexture } from "three";
+import { Group, Vector3, CanvasTexture } from "three";
 import type { OrbitControls as Controls } from "three-stdlib";
 import {
   type Body,
@@ -83,7 +83,52 @@ function Label({
   useEffect(() => () => texture.dispose(), [texture]);
   return (
     <sprite position={[0, r + 0.75, 0]} scale={[0.24, 0.045, 1]}>
-      <spriteMaterial map={texture} transparent depthTest={false} sizeAttenuation={false} />
+      <spriteMaterial
+        map={texture}
+        transparent
+        depthTest={false}
+        sizeAttenuation={false}
+      />
+    </sprite>
+  );
+}
+function Dot({
+  select,
+  selected,
+  moon,
+}: {
+  select: () => void;
+  selected: boolean;
+  moon: boolean;
+}) {
+  const texture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = selected ? "#f2d18b" : "#f4f8ff";
+    ctx.beginPath();
+    ctx.arc(32, 32, moon ? 4 : 8, 0, Math.PI * 2);
+    ctx.fill();
+    return new CanvasTexture(canvas);
+  }, [selected, moon]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  return (
+    <sprite
+      renderOrder={10}
+      scale={[0.032, 0.032, 1]}
+      onClick={(e) => {
+        e.stopPropagation();
+        select();
+      }}
+    >
+      <spriteMaterial
+        map={texture}
+        transparent
+        depthTest={false}
+        sizeAttenuation={false}
+        toneMapped={false}
+      />
     </sprite>
   );
 }
@@ -104,17 +149,12 @@ function Orb({
   selected: boolean;
   labels: boolean;
 }) {
-  const group = useRef<Group>(null),
-    marker = useRef<Mesh>(null);
+  const group = useRef<Group>(null);
   const r = size(body, real);
-  useFrame(({ clock }) => {
+  useFrame(() => {
     group.current?.position.set(
       ...position(body, days, axis(body, real, local)),
     );
-    if (marker.current)
-      marker.current.scale.setScalar(
-        1 + 0.22 * Math.sin(clock.elapsedTime * 3),
-      );
   });
   return (
     <group ref={group}>
@@ -143,23 +183,11 @@ function Orb({
           />
         </mesh>
       )}
-      <mesh
-        ref={marker}
-        onClick={(e) => {
-          e.stopPropagation();
-          select(body);
-        }}
-      >
-        <sphereGeometry
-          args={[Math.max(r * 1.25, real ? 0.09 : 0.13), 12, 8]}
-        />
-        <meshBasicMaterial
-          color={selected ? "#fff1b0" : body.color || "#b2c9e7"}
-          wireframe
-          transparent
-          opacity={0.45}
-        />
-      </mesh>
+      <Dot
+        select={() => select(body)}
+        selected={selected}
+        moon={!!body.parent}
+      />
       {(labels || selected) && (
         <Label name={body.name} r={Math.max(r, 0.1)} selected={selected} />
       )}

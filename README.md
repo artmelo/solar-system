@@ -17,14 +17,14 @@ npm run build
 
 ## Experiences
 
-- **Explore:** clickable pulsating markers, searchable planets and moons, physical and orbital details, camera focus, orbit/zoom navigation, labels, orbit paths, and recent orbital trails.
+- **Explore:** small stationary clickable dots, searchable planets and moons, physical and orbital details, camera focus, orbit/zoom navigation, labels, orbit paths, and recent orbital trails.
 - **Time Travel:** pause/play, Days (1 day/second), Years (365.25 days/second), 10 Years (3652.5 days/second), date input, timeline scrubbing across 2000–2099, and reset.
 - **Orbit Detective:** compare eccentricities, select a candidate, and receive explanatory feedback.
 - **Moon Dance:** planet-centred satellite systems, with a Jupiter 4:2:1 rhythm introduction and a one-click playback preset.
 - **Educational scale:** compressed planetary semimajor axes; enlarged body radii and satellite systems. Eccentricity, orbital orientation, and periods remain unchanged. This deliberately changes relative spacing.
 - **Realistic scale:** radii and orbital distances use the same linear kilometres-to-scene conversion. Markers retain a visible minimum size and are not physical radii.
 
-The application requires WebGL for 3D. The searchable catalogue and controls are outside the renderer error boundary. Physical appearances are illustrative colours, not spacecraft imagery. The date and day units are Earth-based. Negative rotation periods are labelled retrograde. Missing rotation periods, masses and radii are shown as “Not recorded”.
+The application requires WebGL for 3D. The searchable catalogue and controls are outside the renderer error boundary. The 3D bodies use illustrative colours. The sidebar includes three real NASA archive images for each planet and several major moons, with captions, credits, source links, previous/next controls and slide indicators. For moons without a curated gallery, parent-planet photographs are clearly labelled. Images are hosted by NASA; an unavailable-image message preserves navigation during network failures. Oxanium is bundled locally for the squared typography. The date and day units are Earth-based. Negative rotation periods are labelled retrograde. Missing rotation periods, masses and radii are shown as “Not recorded”.
 
 ## Scientific model and provenance
 
