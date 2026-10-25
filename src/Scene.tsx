@@ -4,6 +4,14 @@ import { OrbitControls, Stars, Line } from "@react-three/drei";
 import { Group, Vector3, CanvasTexture } from "three";
 import type { OrbitControls as Controls } from "three-stdlib";
 import {
+  dancePlanet,
+  systemOrigin,
+  focusPoint,
+  systemExtent,
+  overviewExtent,
+  fitDistance,
+} from "./scene-frame";
+import {
   type Body,
   planets,
   sun,
@@ -140,6 +148,7 @@ function Orb({
   select,
   selected,
   labels,
+  centred = false,
 }: {
   body: Body;
   days: number;
@@ -148,12 +157,15 @@ function Orb({
   select: (b: Body) => void;
   selected: boolean;
   labels: boolean;
+  centred?: boolean;
 }) {
   const group = useRef<Group>(null);
   const r = size(body, real);
   useFrame(() => {
     group.current?.position.set(
-      ...position(body, days, axis(body, real, local)),
+      ...(centred
+        ? ([0, 0, 0] as [number, number, number])
+        : position(body, days, axis(body, real, local))),
     );
   });
   return (
@@ -196,16 +208,16 @@ function Orb({
 }
 function World(p: SceneProps) {
   const controls = useRef<Controls>(null);
-  const { camera } = useThree();
-  const focus = p.dance
-    ? p.selected.parent ||
-      (["Sun", "Mercury", "Venus"].includes(p.selected.name)
-        ? "Jupiter"
-        : p.selected.name)
-    : null;
-  const parent = planets.find((b) => b.name === focus);
+  const { camera, size: viewport } = useThree();
+  const parent = p.dance ? dancePlanet(p.selected) : undefined;
   const selectedParent = planets.find((b) => b.name === p.selected.parent);
-  const targetBody = parent || selectedParent || p.selected;
+  const familyParent =
+    parent || selectedParent || planets.find((b) => b.id === p.selected.id);
+  const extent = useMemo(
+    () =>
+      p.dance && parent ? systemExtent(parent, p.real) : overviewExtent(p.real),
+    [p.dance, parent, p.real],
+  );
   const previous = useRef("");
   const destination = useRef<Vector3 | null>(null);
   const localMoons = useMemo(
@@ -223,24 +235,29 @@ function World(p: SceneProps) {
   }, [p.home]);
   useFrame(() => {
     if (!controls.current) return;
-    let target = new Vector3();
-    if (!p.dance && targetBody.id !== "Sun")
-      target.set(...position(targetBody, p.days, axis(targetBody, p.real)));
-    if (p.selected.parent && validOrbit(p.selected))
-      target.add(
-        new Vector3(
-          ...position(p.selected, p.days, axis(p.selected, p.real, true)),
-        ),
-      );
-    const key = [p.selected.id, p.real, p.dance, p.home].join();
+    const target = new Vector3(
+      ...focusPoint(p.selected, p.days, p.real, p.dance),
+    );
+    // Track moving solar-system targets, but keep Moon Dance at its shared origin.
+    const delta = target.clone().sub(controls.current.target);
+    camera.position.add(delta);
+    controls.current.target.copy(target);
+    if (destination.current) destination.current.add(delta);
+    const aspect = viewport.width / Math.max(viewport.height, 1);
+    const focusId = p.dance ? parent!.id : p.selected.id;
+    const key = [
+      focusId,
+      p.real,
+      p.dance,
+      p.home,
+      viewport.width,
+      viewport.height,
+    ].join();
     if (previous.current !== key) {
       previous.current = key;
-      const distance = p.dance
-        ? 32
-        : p.selected.id === "Sun"
-          ? p.real
-            ? 520
-            : 85
+      const distance =
+        p.dance || p.selected.id === "Sun"
+          ? fitDistance(extent, aspect)
           : p.real
             ? Math.max(
                 size(p.selected, true) * 12,
@@ -249,16 +266,15 @@ function World(p: SceneProps) {
             : 14;
       destination.current = target
         .clone()
-        .add(new Vector3(0, distance * 0.8, distance));
+        .add(new Vector3(0, 0.8, 1).normalize().multiplyScalar(distance));
     }
-    const delta = target.clone().sub(controls.current.target);
-    camera.position.add(delta);
-    controls.current.target.copy(target);
     if (destination.current) {
-      camera.position.lerp(destination.current, 0.065);
-      if (camera.position.distanceTo(destination.current) < 0.01)
+      camera.position.lerp(destination.current, 0.09);
+      if (
+        camera.position.distanceTo(destination.current) <
+        Math.max(extent * 1e-7, 1e-8)
+      )
         destination.current = null;
-      else destination.current.add(delta);
     }
     controls.current.update();
   });
@@ -281,7 +297,8 @@ function World(p: SceneProps) {
       />
       {p.dance && parent ? (
         <Orb
-          body={{ ...parent, a: 0, period: 0 }}
+          body={parent}
+          centred
           days={p.days}
           real={p.real}
           select={p.select}
@@ -315,20 +332,16 @@ function World(p: SceneProps) {
         </>
       )}
       {(p.dance || selectedParent || localMoons.length > 0) && (
-        <MoonSystem
-          {...p}
-          parent={
-            parent ||
-            selectedParent ||
-            planets.find((b) => b.id === p.selected.id)
-          }
-          localMoons={localMoons}
-        />
+        <MoonSystem {...p} parent={familyParent} localMoons={localMoons} />
       )}
       <OrbitControls
         ref={controls}
         makeDefault
         enableDamping
+        enablePan={!p.dance}
+        onStart={() => {
+          destination.current = null;
+        }}
         minDistance={0.003}
         maxDistance={1800}
       />
@@ -338,14 +351,14 @@ function World(p: SceneProps) {
 function MoonSystem(p: SceneProps & { parent?: Body; localMoons: Body[] }) {
   const g = useRef<Group>(null);
   useFrame(() => {
-    if (g.current && p.parent && !p.dance)
+    if (g.current && p.parent)
       g.current.position.set(
-        ...position(p.parent, p.days, axis(p.parent, p.real)),
+        ...systemOrigin(p.parent, p.days, p.real, p.dance),
       );
   });
   if (!p.parent) return null;
   return (
-    <group ref={g}>
+    <group ref={g} position={systemOrigin(p.parent, p.days, p.real, p.dance)}>
       {p.localMoons.map((b) => (
         <group key={b.id}>
           {(p.dance || p.selected.id === b.id) && (
@@ -371,7 +384,7 @@ export default function Scene(p: SceneProps) {
   return (
     <Canvas
       camera={{ position: [0, 65, 80], fov: 45, near: 0.00001, far: 3000 }}
-      dpr={[1, 1.7]}
+      dpr={[1, 1.5]}
       fallback={
         <div className="fallback">
           This 3D explorer needs WebGL. You can still browse every body in the
