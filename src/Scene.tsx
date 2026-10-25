@@ -82,8 +82,8 @@ function Label({
   }, [name, selected]);
   useEffect(() => () => texture.dispose(), [texture]);
   return (
-    <sprite position={[0, r + 0.75, 0]} scale={[4.5, 0.85, 1]}>
-      <spriteMaterial map={texture} transparent depthTest={false} />
+    <sprite position={[0, r + 0.75, 0]} scale={[0.24, 0.045, 1]}>
+      <spriteMaterial map={texture} transparent depthTest={false} sizeAttenuation={false} />
     </sprite>
   );
 }
