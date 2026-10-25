@@ -39,19 +39,3 @@ Sources:
 - [NASA planetary fact sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/)
 
 `src/moons.json` is bundled; there is no live API dependency. Refresh it with `node scripts/import-catalogue.mjs`. The importer unions discovery records with element records, normalizes provisional designations, resolves the source spelling variants Magaclite/Megaclite and Philophrosyn/Philophrosyne, and deduplicates JPL IDs (including Puck). Records without valid complete orbital elements remain searchable but are never assigned an invented orbit. At this snapshot, S/2009 S1 has no complete orbit. Masses are derived only where GM is recorded, using G = 6.67430e-20 km³/kg/s². Unknown radii retain a visible educational marker, but are not given a physical radius in realistic mode.
-
-## Implementation and verification
-
-- `src/model.ts`: typed records, Kepler solver, coordinate transforms, scale functions.
-- `src/Scene.tsx`: Three.js scene, orbital paths/trails, sprites, camera navigation, moon systems.
-- `src/main.tsx`: application state, catalogue, timeline, learning activities, details.
-- `src/model.test.ts`: solver residuals, periapsis/apoapsis, period closure, catalogue integrity, finite positions, incomplete-record fallback, realistic scale invariants.
-- `tests/explorer.spec.ts`: browser interaction regression coverage.
-
-The referenced ChatGPT assistant specification was inaccessible as content-reference placeholders; implementation follows the original user requirements and the explicit continuation request. No Mode 2 starship experience is included.
-
-## Vercel
-
-Import `artmelo/solar-system`, choose the Vite preset, root directory `.`, build `npm run build`, output `dist`. No environment variables or backend services are required. `vercel.json` declares these settings. Preview deployments can build the `feat/mode-1-explorer` branch before merge. Promote or merge only after checking that deployment.
-
-Deployment attempt in the connected team returned 403 forbidden on project creation. The CLI fallback had no credentials. No hosted deployment URL has been claimed.
