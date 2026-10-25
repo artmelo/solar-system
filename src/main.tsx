@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, Component } from "react";
 import { createRoot } from "react-dom/client";
 import Scene from "./Scene";
+import { dancePlanet } from "./scene-frame";
 import NasaCarousel from "./NasaCarousel";
 import "@fontsource/oxanium/400.css";
 import "@fontsource/oxanium/500.css";
@@ -50,6 +51,15 @@ function App() {
     [answer, setAnswer] = useState(""),
     [help, setHelp] = useState(false);
   const clock = useRef(0);
+  const detailsRef = useRef<HTMLElement>(null);
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const scrollTo = (element: HTMLElement | null) =>
+    element?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
   useEffect(() => {
     let id: number;
     const tick = (t: number) => {
@@ -78,8 +88,12 @@ function App() {
       ? "Not recorded"
       : `${v.toLocaleString(undefined, { maximumSignificantDigits: 6 })} ${suffix}`;
   return (
-    <main>
-      <div className="universe">
+    <main data-mode={mode}>
+      <div
+        className="universe"
+        ref={sceneRef}
+        aria-label="Interactive solar system"
+      >
         <Boundary>
           <Scene
             days={days}
@@ -116,11 +130,7 @@ function App() {
               onClick={() => {
                 setMode(m);
                 setAnswer("");
-                if (
-                  m === "Moon Dance" &&
-                  ["Sun", "Mercury", "Venus"].includes(selected.name)
-                )
-                  select(planets[4]);
+                if (m === "Moon Dance") select(dancePlanet(selected));
               }}
               key={m}
             >
@@ -245,7 +255,13 @@ function App() {
           </div>
         )}
       </section>
-      <aside>
+      <aside ref={detailsRef} aria-label="Body details">
+        <button
+          className="mobile-only back-to-space"
+          onClick={() => scrollTo(sceneRef.current)}
+        >
+          ↑ Back to space
+        </button>
         <div className="eyebrow">YOUR FIELD GUIDE</div>
         <label className="search">
           <span>⌕</span>
@@ -363,6 +379,12 @@ function App() {
       </aside>
       <div className="scene-tools">
         <button
+          className="mobile-only mobile-details"
+          onClick={() => scrollTo(detailsRef.current)}
+        >
+          Details: {selected.name} ↓
+        </button>
+        <button
           onClick={() => {
             select(sun);
             setMode("Explore");
@@ -463,7 +485,12 @@ function App() {
         </div>
       </section>
       <footer>
-        <span>DRAG TO ORBIT · SCROLL TO ZOOM · CLICK TO DISCOVER</span>
+        <span className="desktop-only">
+          DRAG TO ORBIT · SCROLL TO ZOOM · CLICK TO DISCOVER
+        </span>
+        <span className="mobile-only">
+          DRAG TO ORBIT · PINCH TO ZOOM · TAP TO DISCOVER
+        </span>
         <span>
           KEPLERIAN MODEL <b>✧</b> JPL CATALOGUE
         </span>

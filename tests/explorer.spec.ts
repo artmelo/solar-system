@@ -58,3 +58,61 @@ test("explore, time travel, scales and learning activities", async ({
   await expect(page.getByLabel("Play simulation")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+for (const viewport of [
+  { width: 320, height: 568 },
+  { width: 390, height: 844 },
+  { width: 768, height: 1024 },
+  { width: 844, height: 390 },
+]) {
+  test(`mobile controls and panels fit ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("http://localhost:5173");
+    for (const mode of ["Explore", "Moon Dance", "Orbit Detective"]) {
+      await page.getByRole("button", { name: mode, exact: true }).click();
+      const layout = await page.evaluate(() => {
+        const panels = [
+          "header",
+          ".universe",
+          ".scene-tools",
+          ".timeline",
+          "aside",
+        ].map((selector) =>
+          document.querySelector(selector)!.getBoundingClientRect(),
+        );
+        return {
+          width: document.documentElement.clientWidth,
+          content: document.documentElement.scrollWidth,
+          ordered: panels.every(
+            (rect, index) =>
+              index === 0 || rect.top >= panels[index - 1].bottom - 1,
+          ),
+          sceneHeight: panels[1].height,
+        };
+      });
+      expect(layout.content).toBeLessThanOrEqual(layout.width);
+      expect(layout.ordered).toBe(true);
+      expect(layout.sceneHeight).toBeGreaterThanOrEqual(250);
+      for (const label of ["Play simulation", "Choose date"]) {
+        const bounds = await page
+          .getByLabel(label, { exact: true })
+          .boundingBox();
+        expect(bounds?.height).toBeGreaterThanOrEqual(44);
+      }
+    }
+    await page.getByRole("button", { name: "Moon Dance", exact: true }).click();
+    await page.getByRole("combobox").selectOption("Saturn");
+    await page
+      .getByRole("button", { name: "Details: Saturn ↓", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Saturn", exact: true }),
+    ).toBeInViewport();
+    await page
+      .getByRole("button", { name: "↑ Back to space", exact: true })
+      .click();
+    await expect(page.locator("canvas")).toBeInViewport();
+  });
+}
