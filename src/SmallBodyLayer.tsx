@@ -6,7 +6,6 @@ import {
   Mesh,
   Points,
   CanvasTexture,
-  Vector3,
   AdditiveBlending,
   BufferAttribute,
   PointsMaterial,
@@ -18,6 +17,7 @@ import {
   smallOrbit,
   smallTrail,
   tailActivity,
+  writeCometTail,
 } from "./small-body-orbits";
 import { Dot, Label } from "./Markers";
 import type { SceneProps } from "./Scene";
@@ -33,27 +33,18 @@ function Tail({
   const group = useRef<Group>(null),
     points = useRef<Points>(null);
   const coordinates = useMemo(() => new Float32Array(96 * 3), []);
-  const direction = useMemo(() => new Vector3(), []),
-    forward = useMemo(() => new Vector3(0, 0, 1), []);
   useFrame(() => {
     if (!group.current || !points.current) return;
-    const point = smallScenePosition(body, days, real),
-      activity = tailActivity(Math.hypot(...position(body, days)) / AU);
+    const activity = tailActivity(Math.hypot(...position(body, days)) / AU);
     group.current.visible = activity > 0.01;
     if (activity <= 0.01) return;
-    group.current.quaternion.setFromUnitVectors(
-      forward,
-      direction.set(...point).normalize(),
+    writeCometTail(
+      body,
+      days,
+      real,
+      real ? 0.8 : 1.5 + activity * 4,
+      coordinates,
     );
-    const length = real ? 0.8 : 1.5 + activity * 4;
-    for (let i = 0; i < 96; i++) {
-      const t = i / 95,
-        phase = i * 2.399 + days * 0.15;
-      const spread = (real ? 0.02 : 0.12) * t;
-      coordinates[i * 3] = Math.cos(phase) * spread * (0.3 + (i % 7) / 7);
-      coordinates[i * 3 + 1] = Math.sin(phase) * spread;
-      coordinates[i * 3 + 2] = t * length;
-    }
     (
       points.current.geometry.attributes.position as BufferAttribute
     ).needsUpdate = true;

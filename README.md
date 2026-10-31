@@ -29,7 +29,7 @@ Try **Watch Jupiter’s rhythm** to start playback: Io completes roughly four or
 
 Turn on **Asteroids** and **Comets** below the scene. Amber dots mark asteroids; blue dots mark comets. Click a dot, search by name, or open **20 asteroids & comet visitors** in the field guide to choose one.
 
-Try **Watch Halley’s pass** to jump near its modelled closest approach to the Sun and start playback. Use **Days** for a close look or **Years** to see a longer journey. Comet tails point away from the Sun, and fade with distance. Pause freezes the animation. These tails illustrate activity; they do not predict actual appearance or brightness.
+Try **Watch Halley’s pass** to jump near its modelled closest approach to the Sun and start playback. Use **Days** for a close look or **Years** to see a longer journey. Comet tails curve along each comet’s recent orbital path, trailing behind its motion and fading with distance. Pause freezes the animation. These stylized orbital wakes do not predict physical tail direction, appearance, or brightness.
 
 The set includes nine large main-belt bodies, including Ceres and Vesta, and eleven large comet nuclei, including Bernardinelli–Bernstein, Hale–Bopp, and Halley. It uses [NASA/JPL’s Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html) and [NASA’s giant-comet size estimates](https://science.nasa.gov/missions/hubble/hubble-confirms-largest-comet-nucleus-ever-seen/). Diameter records are incomplete, so this is a curated collection rather than a definitive top-20 ranking. Ceres is also a dwarf planet.
 
