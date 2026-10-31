@@ -1,4 +1,5 @@
 import catalogue from "./moons.json";
+import smallCatalogue from "./small-bodies.json";
 export type Body = {
   id: string;
   name: string;
@@ -12,7 +13,16 @@ export type Body = {
   period: number | null;
   radius?: number | null;
   mass?: number | null;
-  day?: number;
+  day?: number | null;
+  kind?: "asteroid" | "comet";
+  designation?: string;
+  diameter?: number;
+  q?: number;
+  epochJD?: number;
+  tpJD?: number;
+  source?: string;
+  diameterSource?: string;
+  diameterNote?: string;
   epoch?: string;
   frame?: string;
   poleRA?: number;
@@ -176,7 +186,8 @@ export const planets: Body[] = data.map(
   }),
 );
 export const moons: Body[] = catalogue;
-export const bodies = [sun, ...planets, ...moons];
+export const smallBodies: Body[] = smallCatalogue.objects as Body[];
+export const bodies = [sun, ...planets, ...moons, ...smallBodies];
 export function validOrbit(b: Body) {
   return (
     b.a !== null &&
@@ -205,12 +216,15 @@ export function position(
   a = b.a || 0,
 ): [number, number, number] {
   if (!validOrbit(b)) return [0, 0, 0];
-  const epoch = b.epoch
-    ? (Date.parse(b.epoch.slice(0, 10) + "T00:00:00Z") +
-        Number("0." + (b.epoch.split(".")[1] || "0")) * 86400000 -
-        J2000) /
-      86400000
-    : 0;
+  const epoch =
+    b.epochJD !== undefined
+      ? b.epochJD - 2451545
+      : b.epoch
+        ? (Date.parse(b.epoch.slice(0, 10) + "T00:00:00Z") +
+            Number("0." + (b.epoch.split(".")[1] || "0")) * 86400000 -
+            J2000) /
+          86400000
+        : 0;
   const E = eccentricAnomaly(
     (b.m || 0) * rad + (2 * Math.PI * (days - epoch)) / b.period!,
     b.e!,

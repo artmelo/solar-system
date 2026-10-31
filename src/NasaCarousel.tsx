@@ -15,7 +15,7 @@ export default function NasaCarousel({ body }: { body: Body }) {
   if (!images?.length)
     return (
       <p className="gallery-note">
-        No NASA photographs are available for this body.
+        No curated NASA photo gallery for this body yet.
       </p>
     );
   return (

@@ -25,6 +25,18 @@ Try **Watch Jupiter’s rhythm** to start playback: Io completes roughly four or
 
 *Saturn’s moons trace many different paths around their shared planetary centre.*
 
+## Follow asteroids and comets
+
+Turn on **Asteroids** and **Comets** below the scene. Amber dots mark asteroids; blue dots mark comets. Click a dot, search by name, or open **20 asteroids & comet visitors** in the field guide to choose one.
+
+Try **Watch Halley’s pass** to jump near its modelled closest approach to the Sun and start playback. Use **Days** for a close look or **Years** to see a longer journey. Comet tails point away from the Sun, and fade with distance. Pause freezes the animation. These tails illustrate activity; they do not predict actual appearance or brightness.
+
+The set includes nine large main-belt bodies, including Ceres and Vesta, and eleven large comet nuclei, including Bernardinelli–Bernstein, Hale–Bopp, and Halley. It uses [NASA/JPL’s Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html) and [NASA’s giant-comet size estimates](https://science.nasa.gov/missions/hubble/hubble-confirms-largest-comet-nucleus-ever-seen/). Diameter records are incomplete, so this is a curated collection rather than a definitive top-20 ranking. Ceres is also a dwarf planet.
+
+Each visitor follows its own dated Keplerian orbit. Fixed orbital elements are approximate over the timeline; close encounters, perturbations, and comet outgassing are not modelled. “Sun pass” dates are simulation estimates, not precision forecasts. Orbit lines show the region within 70 AU; objects farther away still follow their trajectories. Educational scale compresses radial distances while preserving direction. Realistic scale uses the same physical distance scale as the planets, with visible selection dots and illustrative comet effects.
+
+The data snapshot is dated **2026-10-31**. To refresh it, run `node scripts/import-small-bodies.mjs`, then review the selection and run the tests and build. The importer requests JPL data sequentially; the app uses bundled records and makes no live JPL API requests.
+
 ## Travel through time
 
 Press **Play** to start, or pause whenever something catches your eye. Choose how quickly time passes:

@@ -1215,3 +1215,58 @@ aside {
     min-height: 260px;
   }
 }
+
+/* The visitor layer shares the same time controls and touch-friendly field guide. */
+.scene-tools {
+  flex-wrap: wrap;
+  max-width: calc(100% - 650px);
+}
+.scene-tools .flyby-button {
+  color: #a3e7f4;
+  border-color: #3b6679;
+  background: #101f2e;
+}
+.visitor-catalogue .moon-list button {
+  display: block;
+  line-height: 1.5;
+}
+.visitor-catalogue .moon-list small {
+  display: block;
+  color: #91a5bf;
+}
+.visitor-sources {
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 14px 0;
+}
+.visitor-sources p {
+  font-size: 10px;
+}
+.visitor-sources a {
+  color: #a3e7f4;
+}
+.visitor-sources button {
+  width: 100%;
+  color: #a3e7f4;
+  font-size: 11px;
+}
+.visitor-note {
+  color: #a7bdcc;
+}
+@media (max-width: 900px) {
+  .scene-tools {
+    max-width: none;
+  }
+  .scene-tools .flyby-button {
+    width: 100%;
+    min-height: 44px;
+  }
+  .visitor-sources,
+  .visitor-sources p {
+    font-size: 12px;
+  }
+  .visitor-sources button {
+    min-height: 44px;
+    font-size: 13px;
+  }
+}

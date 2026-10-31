@@ -9,6 +9,9 @@ import "@fontsource/oxanium/600.css";
 import "@fontsource/oxanium/700.css";
 import {
   bodies,
+  smallBodies,
+  AU,
+  position,
   planets,
   moons,
   sun,
@@ -16,6 +19,8 @@ import {
   type Body,
   validOrbit,
 } from "./model";
+import { perihelionInTimeline } from "./small-body-orbits";
+import smallCatalogue from "./small-bodies.json";
 import "./style.css";
 class Boundary extends Component<
   { children: React.ReactNode },
@@ -45,6 +50,8 @@ function App() {
     [real, setReal] = useState(false),
     [trails, setTrails] = useState(true),
     [labels, setLabels] = useState(true),
+    [asteroids, setAsteroids] = useState(true),
+    [comets, setComets] = useState(true),
     [mode, setMode] = useState("Explore"),
     [query, setQuery] = useState(""),
     [home, setHome] = useState(0),
@@ -81,12 +88,28 @@ function App() {
   const family = moons.filter((b) => b.parent === parent?.name);
   const pick = (b: Body) => {
     select(b);
+    if (b.kind) {
+      setMode("Explore");
+      if (b.kind === "comet") setComets(true);
+      else setAsteroids(true);
+    }
     setQuery("");
   };
   const number = (v: number | null | undefined, suffix: string) =>
     v == null
       ? "Not recorded"
       : `${v.toLocaleString(undefined, { maximumSignificantDigits: 6 })} ${suffix}`;
+  const passage = selected.kind ? perihelionInTimeline(selected, days) : null;
+  const halley = smallBodies.find((b) => b.designation === "1P");
+  const watchPass = (body: Body) => {
+    const pass = perihelionInTimeline(body, days);
+    if (pass === null) return;
+    pick(body);
+    setDays(Math.max(0, pass - 20));
+    setSpeed(1);
+    setPlaying(true);
+    setHome((n) => n + 1);
+  };
   return (
     <main data-mode={mode}>
       <div
@@ -104,6 +127,8 @@ function App() {
             labels={labels}
             dance={mode === "Moon Dance"}
             home={home}
+            asteroids={asteroids}
+            comets={comets}
           />
         </Boundary>
       </div>
@@ -266,8 +291,8 @@ function App() {
         <label className="search">
           <span>⌕</span>
           <input
-            aria-label="Search planets and moons"
-            placeholder="Find a planet or moon…"
+            aria-label="Search celestial bodies"
+            placeholder="Find a planet, moon or visitor…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -284,7 +309,11 @@ function App() {
                 <button key={b.id} onClick={() => pick(b)}>
                   {b.name}
                   <small>
-                    {b.parent || "Solar system"}
+                    {b.kind
+                      ? b.kind === "comet"
+                        ? "Comet"
+                        : "Asteroid"
+                      : b.parent || "Solar system"}
                     {b.parent && !validOrbit(b) ? " · orbit unavailable" : ""}
                   </small>
                 </button>
@@ -292,11 +321,13 @@ function App() {
           </div>
         )}
         <div className="eyebrow">
-          {selected.parent
-            ? `MOON OF ${selected.parent.toUpperCase()}`
-            : selected.id === "Sun"
-              ? "OUR STAR"
-              : `PLANET ${planets.findIndex((p) => p.id === selected.id) + 1} / 08`}
+          {selected.kind
+            ? `${selected.kind.toUpperCase()} · NASA/JPL`
+            : selected.parent
+              ? `MOON OF ${selected.parent.toUpperCase()}`
+              : selected.id === "Sun"
+                ? "OUR STAR"
+                : `PLANET ${planets.findIndex((p) => p.id === selected.id) + 1} / 08`}
         </div>
         <h2>{selected.name}</h2>
         <NasaCarousel body={selected} />
@@ -304,7 +335,34 @@ function App() {
           {selected.fact ||
             "A natural satellite with its own path around a planetary world."}
         </p>
+        {selected.kind && (
+          <p className="data-note visitor-note">
+            NASA/JPL orbit · {smallCatalogue.retrieved}. Fixed elements;
+            approximate positions. Tails and coma are illustrations, not
+            brightness predictions.
+          </p>
+        )}
         <dl>
+          {selected.kind && (
+            <>
+              <div>
+                <dt>
+                  {selected.kind === "comet" ? "Nucleus diameter" : "Diameter"}
+                </dt>
+                <dd>≈ {number(selected.diameter, "km")}</dd>
+              </div>
+              <div>
+                <dt>Distance from Sun</dt>
+                <dd>
+                  {number(Math.hypot(...position(selected, days)) / AU, "AU")}
+                </dd>
+              </div>
+              <div>
+                <dt>Closest Sun distance</dt>
+                <dd>{number(selected.q! / AU, "AU")}</dd>
+              </div>
+            </>
+          )}
           <div>
             <dt>Mass</dt>
             <dd>
@@ -347,10 +405,45 @@ function App() {
           {selected.id !== "Sun" && (
             <div>
               <dt>Orbital eccentricity</dt>
-              <dd>{selected.e ?? "Not recorded"}</dd>
+              <dd>
+                {selected.e?.toLocaleString(undefined, {
+                  maximumSignificantDigits: 6,
+                }) ?? "Not recorded"}
+              </dd>
             </div>
           )}
         </dl>
+        {selected.kind && (
+          <div className="visitor-sources">
+            <p>{selected.diameterNote}</p>
+            <a href={selected.source} target="_blank" rel="noreferrer">
+              JPL orbit record ↗
+            </a>{" "}
+            ·{" "}
+            <a href={selected.diameterSource} target="_blank" rel="noreferrer">
+              Size source ↗
+            </a>
+            {passage !== null ? (
+              <>
+                <p>
+                  Modelled Sun pass:{" "}
+                  {new Date(J2000 + passage * 86400000)
+                    .toISOString()
+                    .slice(0, 10)}{" "}
+                  (approximate).
+                </p>
+                <button onClick={() => watchPass(selected)}>
+                  Watch this Sun pass ↗
+                </button>
+              </>
+            ) : (
+              <p>
+                No perihelion occurs in the 2000–2099 timeline. You can still
+                follow this part of its orbit.
+              </p>
+            )}
+          </div>
+        )}
         {selected.parent && (
           <p className="data-note">
             {validOrbit(selected)
@@ -373,6 +466,29 @@ function App() {
             </div>
           </details>
         )}
+        <details className="visitor-catalogue">
+          <summary>20 asteroids & comet visitors ↗</summary>
+          <p className="data-note">
+            Nine large main-belt bodies and eleven comet nuclei. Recorded size
+            estimates are incomplete; this is a curated set, not a definitive
+            largest-object ranking. Ceres is also a dwarf planet.
+          </p>
+          <p className="data-note">
+            Comet paths are drawn within 70 AU of the Sun. Educational distances
+            and visitor sizes are enlarged/compressed. Use Realistic for one
+            consistent physical scale.
+          </p>
+          <div className="moon-list">
+            {smallBodies.map((body) => (
+              <button key={body.id} onClick={() => pick(body)}>
+                {body.name}
+                <small>
+                  {body.kind} · ≈{body.diameter?.toLocaleString()} km
+                </small>
+              </button>
+            ))}
+          </div>
+        </details>
         <button className="focus" onClick={() => setHome((n) => n + 1)}>
           ◎ Focus on {selected.name}
         </button>
@@ -409,6 +525,40 @@ function App() {
           />{" "}
           Labels
         </label>
+        {mode !== "Moon Dance" && (
+          <>
+            <label>
+              <input
+                type="checkbox"
+                checked={asteroids}
+                onChange={(e) => {
+                  setAsteroids(e.target.checked);
+                  if (!e.target.checked && selected.kind === "asteroid")
+                    select(sun);
+                }}
+              />{" "}
+              Asteroids
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={comets}
+                onChange={(e) => {
+                  setComets(e.target.checked);
+                  if (!e.target.checked && selected.kind === "comet")
+                    select(sun);
+                }}
+              />{" "}
+              Comets
+            </label>
+            <button
+              className="flyby-button"
+              onClick={() => halley && watchPass(halley)}
+            >
+              Watch Halley’s pass ↗
+            </button>
+          </>
+        )}
       </div>
       <section className="timeline" aria-label="Time Travel">
         <div className="time-heading">
