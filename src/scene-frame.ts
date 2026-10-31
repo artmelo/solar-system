@@ -1,4 +1,9 @@
 import {
+  smallScenePosition,
+  educationalRadius,
+  ORBIT_VIEW_AU,
+} from "./small-body-orbits";
+import {
   type Body,
   planets,
   moons,
@@ -35,6 +40,7 @@ export function focusPoint(
 ): Point {
   // Selecting a moon changes its details, not the planet-centred reference frame.
   if (dance) return [0, 0, 0];
+  if (selected.kind) return smallScenePosition(selected, days, real);
   const parent = selected.parent
     ? planets.find((p) => p.name === selected.parent)
     : selected;
@@ -54,9 +60,14 @@ export function systemExtent(parent: Body, real: boolean): number {
       size(parent, real) * 2.4,
     );
 }
-export function overviewExtent(real: boolean): number {
+export function overviewExtent(real: boolean, visitors = false): number {
   return Math.max(
     size(sun, real),
+    visitors
+      ? real
+        ? ORBIT_VIEW_AU * 12
+        : educationalRadius(ORBIT_VIEW_AU)
+      : 0,
     ...planets.map((b) => axis(b, real) * (1 + b.e!) + size(b, real) * 2.4),
   );
 }

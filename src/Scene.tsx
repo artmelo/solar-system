@@ -1,7 +1,9 @@
 import { useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars, Line } from "@react-three/drei";
-import { Group, Vector3, CanvasTexture } from "three";
+import { Group, Vector3 } from "three";
+import { Dot, Label } from "./Markers";
+import SmallBodyLayer from "./SmallBodyLayer";
 import type { OrbitControls as Controls } from "three-stdlib";
 import {
   dancePlanet,
@@ -30,6 +32,8 @@ export type SceneProps = {
   labels: boolean;
   dance: boolean;
   home: number;
+  asteroids: boolean;
+  comets: boolean;
 };
 function Orbit({
   body,
@@ -66,78 +70,6 @@ function Orbit({
       opacity={trail ? 0.85 : 0.25}
       lineWidth={trail ? 2 : 1}
     />
-  );
-}
-function Label({
-  name,
-  r,
-  selected,
-}: {
-  name: string;
-  r: number;
-  selected: boolean;
-}) {
-  const texture = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 96;
-    const ctx = canvas.getContext("2d")!;
-    ctx.font = "500 32px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = selected ? "#f2d18b" : "#bdcde0";
-    ctx.fillText(name, 256, 58);
-    return new CanvasTexture(canvas);
-  }, [name, selected]);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return (
-    <sprite position={[0, r + 0.75, 0]} scale={[0.24, 0.045, 1]}>
-      <spriteMaterial
-        map={texture}
-        transparent
-        depthTest={false}
-        sizeAttenuation={false}
-      />
-    </sprite>
-  );
-}
-function Dot({
-  select,
-  selected,
-  moon,
-}: {
-  select: () => void;
-  selected: boolean;
-  moon: boolean;
-}) {
-  const texture = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = selected ? "#f2d18b" : "#f4f8ff";
-    ctx.beginPath();
-    ctx.arc(32, 32, moon ? 4 : 8, 0, Math.PI * 2);
-    ctx.fill();
-    return new CanvasTexture(canvas);
-  }, [selected, moon]);
-  useEffect(() => () => texture.dispose(), [texture]);
-  return (
-    <sprite
-      renderOrder={10}
-      scale={[0.032, 0.032, 1]}
-      onClick={(e) => {
-        e.stopPropagation();
-        select();
-      }}
-    >
-      <spriteMaterial
-        map={texture}
-        transparent
-        depthTest={false}
-        sizeAttenuation={false}
-        toneMapped={false}
-      />
-    </sprite>
   );
 }
 function Orb({
@@ -215,8 +147,10 @@ function World(p: SceneProps) {
     parent || selectedParent || planets.find((b) => b.id === p.selected.id);
   const extent = useMemo(
     () =>
-      p.dance && parent ? systemExtent(parent, p.real) : overviewExtent(p.real),
-    [p.dance, parent, p.real],
+      p.dance && parent
+        ? systemExtent(parent, p.real)
+        : overviewExtent(p.real, p.asteroids || p.comets),
+    [p.dance, parent, p.real, p.asteroids, p.comets],
   );
   const previous = useRef("");
   const destination = useRef<Vector3 | null>(null);
@@ -250,6 +184,8 @@ function World(p: SceneProps) {
       p.real,
       p.dance,
       p.home,
+      p.asteroids,
+      p.comets,
       viewport.width,
       viewport.height,
     ].join();
@@ -263,7 +199,9 @@ function World(p: SceneProps) {
                 size(p.selected, true) * 12,
                 p.selected.parent ? 0.015 : 0.12,
               )
-            : 14;
+            : p.selected.kind
+              ? 10
+              : 14;
       destination.current = target
         .clone()
         .add(new Vector3(0, 0.8, 1).normalize().multiplyScalar(distance));
@@ -334,6 +272,7 @@ function World(p: SceneProps) {
       {(p.dance || selectedParent || localMoons.length > 0) && (
         <MoonSystem {...p} parent={familyParent} localMoons={localMoons} />
       )}
+      {!p.dance && <SmallBodyLayer {...p} />}
       <OrbitControls
         ref={controls}
         makeDefault
@@ -343,7 +282,7 @@ function World(p: SceneProps) {
           destination.current = null;
         }}
         minDistance={0.003}
-        maxDistance={1800}
+        maxDistance={100000}
       />
     </>
   );
@@ -383,7 +322,7 @@ function MoonSystem(p: SceneProps & { parent?: Body; localMoons: Body[] }) {
 export default function Scene(p: SceneProps) {
   return (
     <Canvas
-      camera={{ position: [0, 65, 80], fov: 45, near: 0.00001, far: 3000 }}
+      camera={{ position: [0, 65, 80], fov: 45, near: 0.00001, far: 50000 }}
       dpr={[1, 1.5]}
       fallback={
         <div className="fallback">
