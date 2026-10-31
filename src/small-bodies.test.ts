@@ -96,3 +96,39 @@ test("watch shortcuts stay in timeline and distant comets have no visible tail a
   assert.equal(tailActivity(20), 0);
   assert.equal(tailActivity(1), 1);
 });
+
+test("comet tails follow past orbital positions in both scales, including retrograde paths", async () => {
+  const { cometTailSpan, writeCometTail } = await import("./small-body-orbits");
+  for (const b of smallBodies.filter((b) => b.kind === "comet"))
+    for (const real of [false, true])
+      for (const offset of [-40, 0, 40]) {
+        const days = b.tpJD! - 2451545 + offset,
+          length = real ? 0.8 : 5;
+        const buffer = new Float32Array(96 * 3);
+        writeCometTail(b, days, real, length, buffer);
+        const span = cometTailSpan(b, days, real, length),
+          head = smallScenePosition(b, days, real);
+        assert.ok(span > 0 && Number.isFinite(span));
+        assert.deepEqual(Array.from(buffer.slice(0, 3)), [0, 0, 0]);
+        for (let i = 0; i < 96; i++) {
+          const expected = smallScenePosition(b, days - (span * i) / 95, real);
+          for (let j = 0; j < 3; j++)
+            assert.ok(
+              Math.abs(buffer[i * 3 + j] - (expected[j] - head[j])) < 1e-5,
+              b.name,
+            );
+        }
+        const later = smallScenePosition(b, days + 0.01, real),
+          earlier = smallScenePosition(b, days - 0.01, real);
+        assert.ok(
+          [0, 1, 2].reduce(
+            (sum, j) => sum + buffer[3 + j] * (later[j] - earlier[j]),
+            0,
+          ) < 0,
+          b.name,
+        );
+        const paused = buffer.slice();
+        writeCometTail(b, days, real, length, buffer);
+        assert.deepEqual(buffer, paused);
+      }
+});

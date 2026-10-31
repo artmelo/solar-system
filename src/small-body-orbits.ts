@@ -75,3 +75,35 @@ export function perihelionInTimeline(body: Body, days: number): number | null {
 export function tailActivity(distanceAU: number) {
   return Math.max(0, Math.min(1, (15 - distanceAU) / 12));
 }
+
+// Match the displayed orbit after its scale mapping, including retrograde motion.
+export function cometTailSpan(
+  body: Body,
+  days: number,
+  real: boolean,
+  length: number,
+) {
+  const before = smallScenePosition(body, days - 0.01, real);
+  const after = smallScenePosition(body, days + 0.01, real);
+  const speed = Math.hypot(...after.map((v, i) => v - before[i])) / 0.02;
+  return Math.min(length / Math.max(speed, 1e-12), body.period! * 0.04, 2500);
+}
+export function writeCometTail(
+  body: Body,
+  days: number,
+  real: boolean,
+  length: number,
+  coordinates: Float32Array,
+) {
+  const head = smallScenePosition(body, days, real);
+  const span = cometTailSpan(body, days, real, length);
+  const count = coordinates.length / 3;
+  for (let i = 0; i < count; i++) {
+    const point = smallScenePosition(
+      body,
+      days - (span * i) / (count - 1),
+      real,
+    );
+    for (let j = 0; j < 3; j++) coordinates[i * 3 + j] = point[j] - head[j];
+  }
+}
