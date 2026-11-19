@@ -2,6 +2,8 @@ import { useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars, Line } from "@react-three/drei";
 import { Group, Vector3 } from "three";
+import PlanetSurface from "./PlanetSurface";
+import { displayRadius, closeupDistance, cinematicOverviewDistance, flightPose, type Point3 } from "./cinematic";
 import { Dot, Label } from "./Markers";
 import SmallBodyLayer from "./SmallBodyLayer";
 import type { OrbitControls as Controls } from "three-stdlib";
@@ -34,6 +36,9 @@ export type SceneProps = {
   home: number;
   asteroids: boolean;
   comets: boolean;
+  reducedMotion: boolean;
+  onFlightChange: (flying: boolean) => void;
+  overview: boolean;
 };
 function Orbit({
   body,
@@ -81,6 +86,7 @@ function Orb({
   selected,
   labels,
   centred = false,
+  showMarker = true,
 }: {
   body: Body;
   days: number;
@@ -90,9 +96,10 @@ function Orb({
   selected: boolean;
   labels: boolean;
   centred?: boolean;
+  showMarker?: boolean;
 }) {
   const group = useRef<Group>(null);
-  const r = size(body, real);
+  const r = displayRadius(body, real);
   useFrame(() => {
     group.current?.position.set(
       ...(centred
@@ -102,20 +109,7 @@ function Orb({
   });
   return (
     <group ref={group}>
-      <mesh
-        onClick={(e) => {
-          e.stopPropagation();
-          select(body);
-        }}
-      >
-        <sphereGeometry args={[Math.max(r, real ? 0 : 0.04), 32, 24]} />
-        <meshStandardMaterial
-          color={body.color || "#b6c7da"}
-          roughness={0.85}
-          emissive={body.id === "Sun" ? "#ffad3e" : "#000000"}
-          emissiveIntensity={body.id === "Sun" ? 2 : 0}
-        />
-      </mesh>
+      <PlanetSurface body={body} radius={Math.max(r,real?0:.04)} days={days} onSelect={()=>select(body)}/>
       {body.name === "Saturn" && (
         <mesh rotation={[-Math.PI / 2 + 0.45, 0, 0]}>
           <ringGeometry args={[r * 1.35, r * 2.2, 80]} />
@@ -127,11 +121,11 @@ function Orb({
           />
         </mesh>
       )}
-      <Dot
+      {showMarker&&<Dot
         select={() => select(body)}
         selected={selected}
         moon={!!body.parent}
-      />
+      />}
       {(labels || selected) && (
         <Label name={body.name} r={Math.max(r, 0.1)} selected={selected} />
       )}
@@ -140,8 +134,9 @@ function Orb({
 }
 function World(p: SceneProps) {
   const controls = useRef<Controls>(null);
-  const { camera, size: viewport } = useThree();
+  const { camera, size: viewport, pointer } = useThree();
   const parent = p.dance ? dancePlanet(p.selected) : undefined;
+  const focused=!p.dance&&!p.overview;
   const selectedParent = planets.find((b) => b.name === p.selected.parent);
   const familyParent =
     parent || selectedParent || planets.find((b) => b.id === p.selected.id);
@@ -153,7 +148,10 @@ function World(p: SceneProps) {
     [p.dance, parent, p.real, p.asteroids, p.comets],
   );
   const previous = useRef("");
-  const destination = useRef<Vector3 | null>(null);
+  const flight = useRef<{from:Point3;lookFrom:Point3;offset:Point3;elapsed:number;duration:number}|null>(null);
+  const lastTarget=useRef(new Vector3());
+  const parallax=useRef(new Vector3());
+  const interacting=useRef(false);
   const localMoons = useMemo(
     () =>
       moons.filter(
@@ -167,71 +165,53 @@ function World(p: SceneProps) {
   useEffect(() => {
     previous.current = "";
   }, [p.home]);
-  useFrame(() => {
-    if (!controls.current) return;
-    const target = new Vector3(
-      ...focusPoint(p.selected, p.days, p.real, p.dance),
-    );
-    // Track moving solar-system targets, but keep Moon Dance at its shared origin.
-    const delta = target.clone().sub(controls.current.target);
-    camera.position.add(delta);
-    controls.current.target.copy(target);
-    if (destination.current) destination.current.add(delta);
-    const aspect = viewport.width / Math.max(viewport.height, 1);
-    const focusId = p.dance ? parent!.id : p.selected.id;
-    const key = [
-      focusId,
-      p.real,
-      p.dance,
-      p.home,
-      p.asteroids,
-      p.comets,
-      viewport.width,
-      viewport.height,
-    ].join();
-    if (previous.current !== key) {
-      previous.current = key;
-      const distance =
-        p.dance || p.selected.id === "Sun"
-          ? fitDistance(extent, aspect)
-          : p.real
-            ? Math.max(
-                size(p.selected, true) * 12,
-                p.selected.parent ? 0.015 : 0.12,
-              )
-            : p.selected.kind
-              ? 10
-              : 14;
-      destination.current = target
-        .clone()
-        .add(new Vector3(0, 0.8, 1).normalize().multiplyScalar(distance));
+  useFrame((_,dt) => {
+    if(!controls.current)return;
+    const target = new Vector3(...focusPoint(p.selected,p.days,p.real,p.dance));
+    const aspect=viewport.width/Math.max(viewport.height,1);
+    const key=[p.dance?parent!.id:p.selected.id,p.real,p.dance,p.overview,p.home,viewport.width,viewport.height].join();
+    if(previous.current!==key){
+      camera.position.sub(parallax.current);parallax.current.set(0,0,0);
+      previous.current=key;
+      const overview=p.overview&&!p.dance;
+      const distance=p.dance?fitDistance(extent,aspect):overview?cinematicOverviewDistance(overviewExtent(p.real,false),aspect):p.selected.kind?(p.real?.12:10):closeupDistance(p.selected,p.real,aspect);
+      const offset=new Vector3(0,overview?.4:.18,1).normalize().multiplyScalar(distance);
+      flight.current={from:camera.position.toArray() as Point3,lookFrom:controls.current.target.toArray() as Point3,offset:offset.toArray() as Point3,elapsed:0,duration:p.reducedMotion?.15:2.4};
+      lastTarget.current.copy(target);p.onFlightChange(true);
     }
-    if (destination.current) {
-      camera.position.lerp(destination.current, 0.09);
-      if (
-        camera.position.distanceTo(destination.current) <
-        Math.max(extent * 1e-7, 1e-8)
-      )
-        destination.current = null;
+    if(flight.current){
+      const f=flight.current;f.elapsed=Math.min(f.duration,f.elapsed+Math.min(dt,.1));
+      const pose=flightPose(f.from,f.lookFrom,target.toArray() as Point3,f.offset,f.elapsed/f.duration);
+      camera.position.set(...pose.position);controls.current.target.set(...pose.target);
+      if(f.elapsed>=f.duration){flight.current=null;p.onFlightChange(false);}
+    }else{
+      const delta=target.clone().sub(lastTarget.current);camera.position.add(delta);controls.current.target.add(delta);
+      if(!p.reducedMotion&&!interacting.current&&!p.dance&&viewport.width>900){
+        const distance=camera.position.distanceTo(controls.current.target);
+        const next=new Vector3(pointer.x*distance*.018,pointer.y*distance*.01,0);
+        next.lerp(parallax.current,Math.exp(-dt*3));camera.position.add(next.clone().sub(parallax.current));parallax.current.copy(next);
+      }
     }
+    lastTarget.current.copy(target);
     controls.current.update();
   });
   return (
     <>
-      <ambientLight intensity={0.7} />
+      <ambientLight intensity={0.22} />
+      <directionalLight position={[-6,3,2]} intensity={1.8}/>
       <pointLight
         position={[0, 0, 0]}
-        intensity={p.dance ? 0 : 250}
-        decay={1}
+        intensity={p.dance ? 0 : 110}
+        decay={2}
       />
       {p.dance && <directionalLight position={[4, 8, 5]} intensity={2} />}
       <Stars
         radius={450}
         depth={200}
-        count={2500}
+        count={1600}
         factor={3}
         fade
-        speed={0.15}
+        speed={0}
       />
       {p.dance && parent ? (
         <Orb
@@ -251,19 +231,21 @@ function World(p: SceneProps) {
             real={p.real}
             select={p.select}
             selected={p.selected.id === "Sun"}
-            labels={p.labels}
+            labels={p.labels&&!focused}
+            showMarker={!focused||p.selected.id==="Sun"}
           />
           {planets.map((b) => (
             <group key={b.id}>
-              <Orbit body={b} real={p.real} days={p.days} />
-              {p.trails && <Orbit body={b} real={p.real} days={p.days} trail />}
+              {(!focused||b.id===p.selected.id||b.name===p.selected.parent)&&<Orbit body={b} real={p.real} days={p.days} />}
+              {p.trails&&(!focused||b.id===p.selected.id)&&<Orbit body={b} real={p.real} days={p.days} trail />}
               <Orb
                 body={b}
                 days={p.days}
                 real={p.real}
                 select={p.select}
                 selected={p.selected.id === b.id}
-                labels={p.labels}
+                labels={p.labels&&(!focused||b.id===p.selected.id)}
+                showMarker={!focused||b.id===p.selected.id||b.name===p.selected.parent}
               />
             </group>
           ))}
@@ -279,9 +261,11 @@ function World(p: SceneProps) {
         enableDamping
         enablePan={!p.dance}
         onStart={() => {
-          destination.current = null;
+          if(flight.current){flight.current=null;p.onFlightChange(false);}
+          interacting.current=true;
         }}
-        minDistance={0.003}
+        onEnd={()=>{interacting.current=false;}}
+        minDistance={0.00001}
         maxDistance={100000}
       />
     </>

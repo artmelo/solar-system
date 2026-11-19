@@ -5,6 +5,14 @@ Get to know our celestial neighbours through an interactive 3D solar system. Exp
 **[Open the web version →](https://solar-system-beryl-pi.vercel.app/)**  
 Built by **[artmelo](https://github.com/artmelo)**.
 
+## A cinematic arrival
+
+Start with a tilted view of the solar system. Choose a planet from the quick-pick strip or press **Explore the planets** to visit Earth. The camera and its view target glide together over about 2.4 seconds; the field guide appears on arrival. **Overview** returns to the opening view.
+
+The opening view starts with recent trails, asteroids, and comets hidden for clarity; their toggles remain beside the scene. Subtle pointer parallax adds depth on desktop. Dragging interrupts a flight so you stay in control. If your device requests reduced motion, transitions are shortened and pointer parallax is disabled. The controls and planet picker adapt to phones.
+
+Planet surfaces use credited [Solar System Scope maps](https://www.solarsystemscope.com/textures/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), resized for web performance. Earth has cloud and atmospheric layers. Maps, lighting, atmospheres and educational sizes are illustrative; realistic radii and distances retain their physical scale. Texture credits are also available in Help and [the asset credits](public/textures/CREDITS.md). Missing maps fall back to catalogue colours.
+
 ## Explore a world
 
 Click a planet’s dot or search for a planet or moon to bring up its field guide. Discover its mass, radius, day length, and orbital period, then browse real NASA images with captions and links to the originals.
