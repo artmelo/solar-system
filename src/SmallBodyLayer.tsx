@@ -134,13 +134,13 @@ function Visitor({ body, p }: { body: Body; p: SceneProps }) {
   },-1);
   return (
     <>
-      <Line
+      {p.orbits&&<Line
         points={path}
         color={body.color}
         transparent
         opacity={selected ? 0.7 : 0.15}
         lineWidth={selected ? 1.5 : 0.7}
-      />
+      />}
       {trail && (
         <Line
           points={trail}
@@ -166,13 +166,13 @@ function Visitor({ body, p }: { body: Body; p: SceneProps }) {
             roughness={1}
           />
         </mesh>
-        <Dot
+        {!p.immersive&&<Dot
           select={() => p.select(body)}
           selected={selected}
           moon={false}
           color={body.color}
           radius={r}
-        />
+        />}
         {body.kind === "comet" && (
           <>
             <Coma real={p.real} body={body} days={p.days} />

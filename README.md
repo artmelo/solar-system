@@ -57,9 +57,17 @@ Each visitor follows its own dated Keplerian orbit. Fixed orbital elements are a
 
 The data snapshot is dated **2026-10-31**. To refresh it, run `node scripts/import-small-bodies.mjs`, then review the selection and run the tests and build. The importer requests JPL data sequentially; the app uses bundled records and makes no live JPL API requests.
 
+## Compact controls and full screen
+
+**Time travel**, **Planets**, and the **Field guide** can each be expanded or collapsed with their header buttons. Time travel starts collapsed and keeps playing when you collapse it. The planet picker and field guide use narrower panels. **Legend** sits beside **GitHub** in the footer, and the top navigation is transparent.
+
+Choose **Full screen** for an uninterrupted space view with only **Back to explorer** visible. Back or Escape restores your controls and their previous states. Native browser fullscreen is used when available; the immersive layout also works when the browser does not support it.
+
+**Orbits** starts on and controls complete orbit lines for planets, moons, asteroids, and comets. **Trails** separately controls recent-motion segments. Star brightness is reduced overall and becomes dimmer in Realistic mode; this remains decorative lighting rather than a brightness prediction.
+
 ## Travel through time
 
-Press **Play** to start, or pause whenever something catches your eye. Choose how quickly time passes:
+Expand **Time travel**, then press **Play** to start, or pause whenever something catches your eye. Choose how quickly time passes:
 
 | Speed | What happens in one real second |
 | --- | --- |
