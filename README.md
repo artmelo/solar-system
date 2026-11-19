@@ -9,6 +9,10 @@ Built by **[artmelo](https://github.com/artmelo)**.
 
 Start with a tilted view of the solar system. Choose a planet from the quick-pick strip or press **Explore the planets** to visit Earth. The camera and its view target glide together over about 2.4 seconds; the field guide appears on arrival. **Overview** returns to the opening view.
 
+The planet picker lives in a right-hand sidebar on desktop and a compact grid on phones. A dense decorative starfield and distant spiral galaxies add depth. The footer links to the GitHub repository, and the tab uses a 🌌 favicon.
+
+Educational planets use opaque surfaces and softer fill lighting. Markers are placed on the visible surface and respect nearer bodies. Camera depth precision and zoom limits prevent accidental inside-planet views; close-ups suppress full orbital lines so they do not cross the planet’s face.
+
 The opening view starts with recent trails, asteroids, and comets hidden for clarity; their toggles remain beside the scene. Subtle pointer parallax adds depth on desktop. Dragging interrupts a flight so you stay in control. If your device requests reduced motion, transitions are shortened and pointer parallax is disabled. The controls and planet picker adapt to phones.
 
 Planet surfaces use credited [Solar System Scope maps](https://www.solarsystemscope.com/textures/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), resized for web performance. Earth has cloud and atmospheric layers. Maps, lighting, atmospheres and educational sizes are illustrative; realistic radii and distances retain their physical scale. Texture credits are also available in Help and [the asset credits](public/textures/CREDITS.md). Missing maps fall back to catalogue colours.

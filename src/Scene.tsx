@@ -1,11 +1,12 @@
 import { useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, Line } from "@react-three/drei";
+import { OrbitControls, Line } from "@react-three/drei";
 import { Group, Vector3 } from "three";
 import PlanetSurface from "./PlanetSurface";
-import { displayRadius, closeupDistance, cinematicOverviewDistance, flightPose, type Point3 } from "./cinematic";
+import { displayRadius, closeupDistance, cinematicOverviewDistance, cameraNearPlane, minimumCameraDistance, flightPose, type Point3 } from "./cinematic";
 import { Dot, Label } from "./Markers";
 import SmallBodyLayer from "./SmallBodyLayer";
+import SpaceBackdrop from "./SpaceBackdrop";
 import type { OrbitControls as Controls } from "three-stdlib";
 import {
   dancePlanet,
@@ -54,7 +55,7 @@ function Orbit({
   trail?: boolean;
 }) {
   const a = axis(body, real, local);
-  const points = useMemo(
+  const sampled = useMemo(
     () =>
       Array.from({ length: 129 }, (_, j) =>
         position(
@@ -67,12 +68,20 @@ function Orbit({
       ),
     [body, a, trail, trail ? Math.floor(days) : 0],
   );
+  const points=useMemo(()=>{
+    if(!trail)return sampled;
+    const centre=position(body,days,a),radius=displayRadius(body,real)*1.08;
+    return sampled.filter(point=>Math.hypot(...point.map((v,i)=>v-centre[i]))>radius);
+  },[sampled,body,days,a,real,trail]);
+  if(points.length<2)return null;
   return (
     <Line
       points={points}
       color={trail ? "#f9d68a" : body.color || "#647891"}
       transparent
       opacity={trail ? 0.85 : 0.25}
+      depthTest
+      depthWrite={false}
       lineWidth={trail ? 2 : 1}
     />
   );
@@ -106,7 +115,7 @@ function Orb({
         ? ([0, 0, 0] as [number, number, number])
         : position(body, days, axis(body, real, local))),
     );
-  });
+  },-1);
   return (
     <group ref={group}>
       <PlanetSurface body={body} radius={Math.max(r,real?0:.04)} days={days} onSelect={()=>select(body)}/>
@@ -125,6 +134,7 @@ function Orb({
         select={() => select(body)}
         selected={selected}
         moon={!!body.parent}
+        radius={r}
       />}
       {(labels || selected) && (
         <Label name={body.name} r={Math.max(r, 0.1)} selected={selected} />
@@ -168,7 +178,7 @@ function World(p: SceneProps) {
   useFrame((_,dt) => {
     if(!controls.current)return;
     const target = new Vector3(...focusPoint(p.selected,p.days,p.real,p.dance));
-    const aspect=viewport.width/Math.max(viewport.height,1);
+    const aspect=(viewport.width-(viewport.width>900&&p.overview?300:0))/Math.max(viewport.height,1);
     const key=[p.dance?parent!.id:p.selected.id,p.real,p.dance,p.overview,p.home,viewport.width,viewport.height].join();
     if(previous.current!==key){
       camera.position.sub(parallax.current);parallax.current.set(0,0,0);
@@ -194,10 +204,14 @@ function World(p: SceneProps) {
     }
     lastTarget.current.copy(target);
     controls.current.update();
-  });
+    const near=cameraNearPlane(camera.position.distanceTo(controls.current.target));
+    if(Math.abs(camera.near-near)>near*.02){camera.near=near;camera.updateProjectionMatrix();}
+  },-2);
   return (
     <>
-      <ambientLight intensity={0.22} />
+      <SpaceBackdrop/>
+      <ambientLight intensity={p.real?.22:.45} />
+      <hemisphereLight args={["#c2d5ef","#27344a",p.real?.12:.55]}/>
       <directionalLight position={[-6,3,2]} intensity={1.8}/>
       <pointLight
         position={[0, 0, 0]}
@@ -205,14 +219,6 @@ function World(p: SceneProps) {
         decay={2}
       />
       {p.dance && <directionalLight position={[4, 8, 5]} intensity={2} />}
-      <Stars
-        radius={450}
-        depth={200}
-        count={1600}
-        factor={3}
-        fade
-        speed={0}
-      />
       {p.dance && parent ? (
         <Orb
           body={parent}
@@ -236,7 +242,7 @@ function World(p: SceneProps) {
           />
           {planets.map((b) => (
             <group key={b.id}>
-              {(!focused||b.id===p.selected.id||b.name===p.selected.parent)&&<Orbit body={b} real={p.real} days={p.days} />}
+              {(!focused||b.name===p.selected.parent)&&<Orbit body={b} real={p.real} days={p.days} />}
               {p.trails&&(!focused||b.id===p.selected.id)&&<Orbit body={b} real={p.real} days={p.days} trail />}
               <Orb
                 body={b}
@@ -265,7 +271,7 @@ function World(p: SceneProps) {
           interacting.current=true;
         }}
         onEnd={()=>{interacting.current=false;}}
-        minDistance={0.00001}
+        minDistance={minimumCameraDistance(parent||p.selected,p.real)}
         maxDistance={100000}
       />
     </>
@@ -278,7 +284,7 @@ function MoonSystem(p: SceneProps & { parent?: Body; localMoons: Body[] }) {
       g.current.position.set(
         ...systemOrigin(p.parent, p.days, p.real, p.dance),
       );
-  });
+  },-1);
   if (!p.parent) return null;
   return (
     <group ref={g} position={systemOrigin(p.parent, p.days, p.real, p.dance)}>

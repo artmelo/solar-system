@@ -523,7 +523,7 @@ function App() {
           ◎ Focus on {selected.name}
         </button>
       </aside>
-      {landing&&<nav className="planet-nav" aria-label="Choose a planet">{planets.map(body=><button key={body.id} onClick={()=>pick(body)}><span className="planet-thumb" aria-hidden="true" style={{backgroundColor:body.color,backgroundImage:'url(/textures/'+(({Earth:'earth_daymap',Venus:'venus_atmosphere'} as Record<string,string>)[body.name]||body.name.toLowerCase())+'.jpg)'}}/>{body.name}</button>)}</nav>}
+      {landing&&<nav className="planet-nav" aria-label="Choose a planet"><div className="planet-nav-heading"><span>OUR SOLAR SYSTEM</span><strong>Choose a world</strong></div>{planets.map(body=><button key={body.id} onClick={()=>pick(body)}><span className="planet-thumb" aria-hidden="true" style={{backgroundColor:body.color,backgroundImage:'url(/textures/'+(({Earth:'earth_daymap',Venus:'venus_atmosphere'} as Record<string,string>)[body.name]||body.name.toLowerCase())+'.jpg)'}}/>{body.name}</button>)}</nav>}
       {focus&&<div className="cinema-status" role="status"><strong>{selected.name}</strong>{flying?'Approaching your world…':'Arrival view · Drag to look around'}</div>}
       <VisualLegend real={real} />
       <div className="scene-tools">
@@ -674,6 +674,7 @@ function App() {
         <span>
           KEPLERIAN MODEL <b>✧</b> JPL CATALOGUE
         </span>
+        <a className="github-link" href="https://github.com/artmelo/solar-system" target="_blank" rel="noreferrer" aria-label="View source on GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.043-1.61-4.043-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.084 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.418-1.305.762-1.605-2.665-.304-5.467-1.334-5.467-5.93 0-1.31.468-2.38 1.236-3.22-.124-.303-.536-1.523.117-3.176 0 0 1.008-.323 3.3 1.23a11.52 11.52 0 0 1 3.003-.404c1.02.005 2.047.138 3.003.404 2.29-1.553 3.297-1.23 3.297-1.23.655 1.653.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.624-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.9-.015 3.293 0 .32.216.694.825.576C20.565 22.297 24 17.8 24 12.5 24 5.87 18.627.5 12 .5Z"/></svg><span>GitHub</span></a>
       </footer>
       {help && (
         <div

@@ -40,7 +40,7 @@ export default function PlanetSurface({body,radius,days,onSelect}:{body:Body;rad
   return <group rotation={[0,0,body.id==='Earth'?.409:0]}>
     <mesh ref={spin} onClick={e=>{e.stopPropagation();onSelect();}}>
       <sphereGeometry args={[radius,segments[0],segments[1]]}/>
-      {body.id==='Sun'?<meshBasicMaterial key={texture?.uuid||'fallback'} map={texture} color={texture?'white':'#ffd17a'} toneMapped={false}/>:<meshStandardMaterial key={texture?.uuid||'fallback'} map={texture} color={texture?'white':body.color||'#b6c7da'} roughness={body.id==='Earth'?.82:.95}/>}
+      {body.id==='Sun'?<meshBasicMaterial key={texture?.uuid||'fallback'} map={texture} transparent={false} opacity={1} depthTest depthWrite color={texture?'white':'#ffd17a'} toneMapped={false}/>:<meshStandardMaterial key={texture?.uuid||'fallback'} map={texture} transparent={false} opacity={1} depthTest depthWrite metalness={0} color={texture?'white':body.color||'#b6c7da'} roughness={body.id==='Earth'?.82:.95}/>}
       {body.id==='Earth'&&<Clouds radius={radius}/>}
     </mesh>
     {body.id==='Earth'&&<Atmosphere radius={radius} color="#448fff"/>}
