@@ -24,6 +24,7 @@ import {
 import { perihelionInTimeline } from "./small-body-orbits";
 import smallCatalogue from "./small-bodies.json";
 import "./style.css";
+import "./cinematic.css";
 class Boundary extends Component<
   { children: React.ReactNode },
   { failed: boolean }
@@ -50,10 +51,10 @@ function App() {
     [playing, setPlaying] = useState(false),
     [speed, setSpeed] = useState(1),
     [real, setReal] = useState(false),
-    [trails, setTrails] = useState(true),
+    [trails, setTrails] = useState(false),
     [labels, setLabels] = useState(true),
-    [asteroids, setAsteroids] = useState(true),
-    [comets, setComets] = useState(true),
+    [asteroids, setAsteroids] = useState(false),
+    [comets, setComets] = useState(false),
     [mode, setMode] = useState("Explore"),
     [query, setQuery] = useState(""),
     [home, setHome] = useState(0),
@@ -63,6 +64,13 @@ function App() {
   const [compareOpen,setCompareOpen]=useState(false);
   const [comparePair,setComparePair]=useState<[Body,Body]>([planets[2],planets[3]]);
   const openComparison=(body?:Body,trigger?:HTMLButtonElement)=>{compareTrigger.current=trigger||null;if(body)setComparePair(([,right])=>[body,right.id===body.id?(body.id===planets[2].id?planets[3]:planets[2]):right]);setPlaying(false);setCompareOpen(true);};
+  const [flying,setFlying]=useState(false);
+  const [reducedMotion,setReducedMotion]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(()=>{const query=window.matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReducedMotion(query.matches);query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
+  const [sunDetails,setSunDetails]=useState(false);
+  const landing=mode==='Explore'&&selected.id==='Sun'&&!sunDetails;
+  const focus=mode==='Explore'&&!landing;
+  const overview=()=>{setSunDetails(false);select(sun);setMode('Explore');setHome(n=>n+1);};
   const clock = useRef(0);
   const detailsRef = useRef<HTMLElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -94,12 +102,14 @@ function App() {
   const family = moons.filter((b) => b.parent === parent?.name);
   const pick = (b: Body) => {
     select(b);
+    setSunDetails(b.id==='Sun');
     if (b.kind) {
       setMode("Explore");
       if (b.kind === "comet") setComets(true);
       else setAsteroids(true);
     }
     setQuery("");
+    if(mode==='Explore'&&window.matchMedia('(max-width:900px)').matches)scrollTo(sceneRef.current);
   };
   const number = (v: number | null | undefined, suffix: string) =>
     v == null
@@ -117,7 +127,7 @@ function App() {
     setHome((n) => n + 1);
   };
   return (
-    <main data-mode={mode}>
+    <main data-mode={mode} data-view={landing?"landing":focus?"focus":"activity"} data-flying={flying}>
       {compareOpen&&<CompareDialog left={comparePair[0]} right={comparePair[1]} onChange={(left,right)=>setComparePair([left,right])} onClose={()=>setCompareOpen(false)} returnFocusTo={compareTrigger.current}/>}
       <div
         className="universe"
@@ -136,6 +146,9 @@ function App() {
             home={home}
             asteroids={asteroids}
             comets={comets}
+            reducedMotion={reducedMotion}
+            onFlightChange={setFlying}
+            overview={landing || (mode!=="Explore"&&selected.id==="Sun")}
           />
         </Boundary>
       </div>
@@ -145,6 +158,7 @@ function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
+            setSunDetails(false);
             select(sun);
             setMode("Explore");
             setHome((x) => x + 1);
@@ -181,8 +195,10 @@ function App() {
         </div>
       </header>
       <section className="intro">
+        {focus&&<div className="cinema-breadcrumb">Solar system / {selected.name}</div>}
+        {focus&&<button className="cinema-overview" onClick={overview}>← Overview</button>}
         <h1>
-          {mode === "Explore" ? (
+          {focus ? selected.name : mode === "Explore" ? (
             <>
               Your place
               <br />
@@ -204,11 +220,12 @@ function App() {
         </h1>
         <p>
           {mode === "Explore"
-            ? "Travel through time. Follow an orbit. Get to know our celestial neighbours."
+            ? landing ? "Choose a world. Begin the journey." : "An arrival worth a closer look. Drag to look around; scroll to explore."
             : mode === "Moon Dance"
               ? "Meet the worlds around a world. Choose a planet and watch its family move."
               : "Look closely at the paths. Every orbit has a story to tell."}
         </p>
+        {landing&&<div className="hero-actions"><button className="hero-cta" onClick={()=>pick(planets[2])}>Explore the planets →</button><button className="meet-sun" onClick={()=>pick(sun)}>Meet the Sun</button></div>}
         <div className="view-options">
           <button
             className={!real ? "active" : ""}
@@ -340,6 +357,7 @@ function App() {
         </div>
         <h2>{selected.name}</h2>
         <button className="compare-selected" onClick={e=>openComparison(selected,e.currentTarget)}>⇄ Compare {selected.name}</button>
+        {selected.id==='Earth'&&<button className="compare-selected" onClick={()=>{const moon=moons.find(b=>b.name==='Moon'&&b.parent==='Earth');if(moon){setMode('Explore');pick(moon);}}}>Explore the Moon →</button>}
         <NasaCarousel body={selected} />
         <p className="fact">
           {selected.fact ||
@@ -503,21 +521,19 @@ function App() {
           ◎ Focus on {selected.name}
         </button>
       </aside>
+      {landing&&<nav className="planet-nav" aria-label="Choose a planet">{planets.map(body=><button key={body.id} onClick={()=>pick(body)}><span className="planet-thumb" aria-hidden="true" style={{backgroundColor:body.color,backgroundImage:'url(/textures/'+(({Earth:'earth_daymap',Venus:'venus_atmosphere'} as Record<string,string>)[body.name]||body.name.toLowerCase())+'.jpg)'}}/>{body.name}</button>)}</nav>}
+      {focus&&<div className="cinema-status" role="status"><strong>{selected.name}</strong>{flying?'Approaching your world…':'Arrival view · Drag to look around'}</div>}
       <VisualLegend real={real} />
       <div className="scene-tools">
         <button className="legend-toggle" popoverTarget="visual-legend">Legend</button>
-        <button
+        {!landing&&<button
           className="mobile-only mobile-details"
           onClick={() => scrollTo(detailsRef.current)}
         >
           Details: {selected.name} ↓
-        </button>
+        </button>}
         <button
-          onClick={() => {
-            select(sun);
-            setMode("Explore");
-            setHome((n) => n + 1);
-          }}
+          onClick={overview}
         >
           ⌂ Overview
         </button>
@@ -667,6 +683,7 @@ function App() {
           <div>
             <button onClick={() => setHelp(false)}>Close ×</button>
             <h2>A universe to explore</h2>
+            <p className="texture-credit">Planet surface maps: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">Solar System Scope</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Maps are resized for the explorer. Lighting, atmospheres and educational sizes are illustrative.</p>
             <p>
               Drag to orbit the camera. Scroll or pinch to zoom. Select a marker
               or search any world for details. Focus returns the camera to your
