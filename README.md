@@ -15,6 +15,14 @@ Drag to look around, zoom in for a closer view, and use **Overview** to return t
 
 *Get closer to Jupiter, browse its NASA photo gallery, and follow its path around the Sun.*
 
+## Compare two worlds
+
+Choose **Compare** in the header, or **Compare [world]** in a body’s field guide. Pick any two planets, moons, asteroids, comets, or the Sun. Search by name to narrow each list, and use **Swap worlds** to switch sides.
+
+The size visual uses one shared linear scale, with a diameter ratio and a side-by-side table of mass, rotation, orbital period, mean orbital distance, eccentricity, and catalogued moons. Very small worlds are labelled rather than enlarged. Missing measurements say **Not recorded**. Moon orbital values refer to their parent planet; planetary values refer to the Sun.
+
+The comparison works on phones, supports the keyboard, and pauses time while you compare. Use the close button or Escape to return to the explorer.
+
 ## Watch the moons dance
 
 Open **Moon Dance** and choose a planet. The planet stays at the centre while its moons move around it. Select a moon to read its details without losing your view of the whole system.

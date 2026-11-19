@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, Component } from "react";
 import { createRoot } from "react-dom/client";
 import Scene from "./Scene";
+import CompareDialog from "./CompareDialog";
 import { dancePlanet } from "./scene-frame";
 import NasaCarousel from "./NasaCarousel";
 import "@fontsource/oxanium/400.css";
@@ -57,6 +58,10 @@ function App() {
     [home, setHome] = useState(0),
     [answer, setAnswer] = useState(""),
     [help, setHelp] = useState(false);
+  const compareTrigger=useRef<HTMLButtonElement|null>(null);
+  const [compareOpen,setCompareOpen]=useState(false);
+  const [comparePair,setComparePair]=useState<[Body,Body]>([planets[2],planets[3]]);
+  const openComparison=(body?:Body,trigger?:HTMLButtonElement)=>{compareTrigger.current=trigger||null;if(body)setComparePair(([,right])=>[body,right.id===body.id?(body.id===planets[2].id?planets[3]:planets[2]):right]);setPlaying(false);setCompareOpen(true);};
   const clock = useRef(0);
   const detailsRef = useRef<HTMLElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -112,6 +117,7 @@ function App() {
   };
   return (
     <main data-mode={mode}>
+      {compareOpen&&<CompareDialog left={comparePair[0]} right={comparePair[1]} onChange={(left,right)=>setComparePair([left,right])} onClose={()=>setCompareOpen(false)} returnFocusTo={compareTrigger.current}/>}
       <div
         className="universe"
         ref={sceneRef}
@@ -163,6 +169,7 @@ function App() {
             </button>
           ))}
         </nav>
+        <div className="header-actions"><button className="compare-launch" onClick={e=>openComparison(undefined,e.currentTarget)}>Compare</button>
         <button
           className="help"
           onClick={() => setHelp(!help)}
@@ -170,6 +177,7 @@ function App() {
         >
           ?
         </button>
+        </div>
       </header>
       <section className="intro">
         <h1>
@@ -330,6 +338,7 @@ function App() {
                 : `PLANET ${planets.findIndex((p) => p.id === selected.id) + 1} / 08`}
         </div>
         <h2>{selected.name}</h2>
+        <button className="compare-selected" onClick={e=>openComparison(selected,e.currentTarget)}>⇄ Compare {selected.name}</button>
         <NasaCarousel body={selected} />
         <p className="fact">
           {selected.fact ||
