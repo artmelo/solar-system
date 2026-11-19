@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, Component } from "react";
 import { createRoot } from "react-dom/client";
 import Scene from "./Scene";
 import CompareDialog from "./CompareDialog";
+import VisualLegend from "./VisualLegend";
 import { dancePlanet } from "./scene-frame";
 import NasaCarousel from "./NasaCarousel";
 import "@fontsource/oxanium/400.css";
@@ -502,7 +503,9 @@ function App() {
           ◎ Focus on {selected.name}
         </button>
       </aside>
+      <VisualLegend real={real} />
       <div className="scene-tools">
+        <button className="legend-toggle" popoverTarget="visual-legend">Legend</button>
         <button
           className="mobile-only mobile-details"
           onClick={() => scrollTo(detailsRef.current)}

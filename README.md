@@ -61,6 +61,10 @@ Drag the timeline or enter a date to explore **2000–2099**. **Reset date** ret
 
 Which planet has the most stretched orbit? Open **Orbit Detective**, compare the eccentricity values in the field guide, and choose your answer. You’ll get a clue or an explanation to help you learn.
 
+## Read the visual legend
+
+Open **Legend** beside the scene controls to understand the white, amber, cyan, and gold selection dots, faint orbital paths, bright recent trails, and comet particle wakes. It explains both scales and highlights the one you are using. Close it with **×**, Escape, or a click outside the panel.
+
 ## Choose your sense of scale
 
 - **Educational:** enlarged worlds and compressed distances make planets and moons easier to explore.
