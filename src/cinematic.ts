@@ -1,4 +1,4 @@
-import { type Body, size } from './model';
+import { type Body, size, AU } from './model';
 import { fitDistance } from './scene-frame';
 export type Point3 = [number, number, number];
 export function displayRadius(body: Body, real: boolean) {
@@ -25,3 +25,6 @@ export function cinematicOverviewDistance(radius: number, aspect: number) {
  const vertical=Math.PI/8,horizontal=Math.atan(Math.tan(vertical)*Math.max(aspect,.1));
  return Math.max(radius/Math.sin(horizontal),radius*.45/Math.sin(vertical))*1.12;
 }
+
+export function cameraNearPlane(distance: number) {return Math.max(1e-7,Math.min(.1,distance*.01));}
+export function minimumCameraDistance(body: Body, real: boolean) {const r=body.kind?(real?(body.radius||0)/AU*12:Math.max(.06,(body.diameter||1)/1000*.24)):displayRadius(body,real);return Math.max(1e-5,r*1.18);}

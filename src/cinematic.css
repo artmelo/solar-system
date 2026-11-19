@@ -57,3 +57,17 @@ main[data-view="focus"] .scene-tools {left:330px;}
 .guide-actions{display:flex;gap:8px;margin-bottom:12px;}
 .guide-actions .compare-selected{flex:1;min-width:0;margin:0;min-height:44px;padding:8px;font-size:11px;line-height:1.4;}
 @media(min-width:901px) and (max-height:800px){main[data-view="focus"] .photo-frame{aspect-ratio:1.8;}}
+/* Right-hand world picker mirrors the field guide's footprint. */
+@media(min-width:901px){
+ .planet-nav{top:118px;right:30px;bottom:180px;left:auto;width:263px;display:flex;flex-direction:column;gap:3px;padding:14px;overflow-y:auto;scrollbar-width:thin;background:#0c1421f2;}
+ .planet-nav button{justify-content:flex-start;flex-shrink:0;gap:14px;min-height:38px;padding:5px 8px;font-size:12px;}
+ .planet-thumb{width:28px;height:28px;}
+ main[data-view="landing"] .scene-tools{max-width:calc(100% - 360px);}
+}
+.planet-nav-heading{padding:2px 8px 8px;flex-shrink:0;}
+.planet-nav-heading span{display:block;font-size:8px;letter-spacing:2px;color:#8fa1bc;margin-bottom:7px;}
+.planet-nav-heading strong{font-size:17px;font-weight:500;color:#e7ecf5;}
+footer{align-items:center;gap:16px;}
+.github-link{display:inline-flex;align-items:center;gap:7px;color:#a4b4cb;text-decoration:none;white-space:nowrap;letter-spacing:.7px;font-size:10px;}
+.github-link:hover{color:#f2d18b;}
+@media(max-width:900px){.planet-nav-heading{grid-column:1/-1;text-align:left;padding:8px;}.github-link{min-height:44px;font-size:12px;}}

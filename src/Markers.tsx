@@ -1,5 +1,6 @@
-import { useMemo, useEffect } from "react";
-import { CanvasTexture } from "three";
+import { useMemo, useEffect, useRef } from "react";
+import { CanvasTexture, Sprite, Vector3 } from "three";
+import {useFrame,useThree} from "@react-three/fiber";
 export function Label({
   name,
   r,
@@ -26,7 +27,8 @@ export function Label({
       <spriteMaterial
         map={texture}
         transparent
-        depthTest={false}
+        depthTest
+        depthWrite={false}
         sizeAttenuation={false}
       />
     </sprite>
@@ -37,12 +39,18 @@ export function Dot({
   selected,
   moon,
   color,
+  radius=0,
 }: {
   select: () => void;
   selected: boolean;
   moon: boolean;
   color?: string;
+  radius?: number;
 }) {
+  const sprite=useRef<Sprite>(null);
+  const {camera}=useThree();
+  const centre=useMemo(()=>new Vector3(),[]),direction=useMemo(()=>new Vector3(),[]);
+  useFrame(()=>{if(!sprite.current?.parent)return;const parent=sprite.current.parent;parent.getWorldPosition(centre);direction.copy(camera.position).sub(centre).normalize().multiplyScalar(radius*1.03);sprite.current.position.copy(parent.worldToLocal(centre.add(direction)));});
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
@@ -57,6 +65,7 @@ export function Dot({
   useEffect(() => () => texture.dispose(), [texture]);
   return (
     <sprite
+      ref={sprite}
       renderOrder={10}
       scale={[0.032, 0.032, 1]}
       onClick={(e) => {
@@ -67,7 +76,8 @@ export function Dot({
       <spriteMaterial
         map={texture}
         transparent
-        depthTest={false}
+        depthTest
+        depthWrite={false}
         sizeAttenuation={false}
         toneMapped={false}
       />

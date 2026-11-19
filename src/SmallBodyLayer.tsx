@@ -131,7 +131,7 @@ function Visitor({ body, p }: { body: Body; p: SceneProps }) {
     group.current?.position.set(...smallScenePosition(body, p.days, p.real));
     if (rock.current && body.day)
       rock.current.rotation.y = ((p.days * 24) / body.day) * Math.PI * 2;
-  });
+  },-1);
   return (
     <>
       <Line
@@ -171,6 +171,7 @@ function Visitor({ body, p }: { body: Body; p: SceneProps }) {
           selected={selected}
           moon={false}
           color={body.color}
+          radius={r}
         />
         {body.kind === "comet" && (
           <>

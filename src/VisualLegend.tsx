@@ -14,7 +14,7 @@ export default function VisualLegend({ real }: { real: boolean }) {
         <li><span className="legend-dot legend-comet" aria-hidden="true"/><span>Cyan · Comets</span></li>
         <li><span className="legend-dot legend-selected" aria-hidden="true"/><span>Gold · Your selected body, of any kind</span></li>
       </ul>
-      <p className="legend-hint">Click or tap a dot for its field guide. Background stars are decorative.</p>
+      <p className="legend-hint">Click or tap a dot for its field guide. Background stars and distant galaxies are decorative.</p>
       <h3>Paths & trails</h3>
       <ul className="legend-symbols legend-paths">
         <li><span className="legend-line legend-orbit" aria-hidden="true"/><span><strong>Faint line</strong> · Full orbital path. Comet orbit lines show the region within 70 AU of the Sun.</span></li>

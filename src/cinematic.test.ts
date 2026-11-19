@@ -25,3 +25,12 @@ test('low-angle opening fits projected orbital disc in desktop and portrait view
  const {cinematicOverviewDistance}=await import('./cinematic');
  for(const aspect of [.5,1,2.5]){const radius=45,d=cinematicOverviewDistance(radius,aspect),v=Math.PI/8,h=Math.atan(Math.tan(v)*aspect);assert.ok(d*Math.sin(h)>radius);assert.ok(d*Math.sin(v)>radius*.45);}
 });
+test('camera depth precision scales with zoom and zoom limits stay outside solid bodies',async()=>{
+ const {cameraNearPlane,minimumCameraDistance}=await import('./cinematic');
+ for(const b of planets)for(const real of [false,true]){
+  const minimum=minimumCameraDistance(b,real);assert.ok(minimum>displayRadius(b,real));
+  const near=cameraNearPlane(minimum);assert.ok(near>0&&near<minimum);
+  assert.ok(closeupDistance(b,real,1)>minimum);
+ }
+ assert.equal(cameraNearPlane(1000),.1);assert.ok(cameraNearPlane(.003)<.0001);
+});
