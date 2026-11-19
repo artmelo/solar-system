@@ -1,0 +1,48 @@
+.visual-legend {
+  position: fixed;
+  inset: auto;
+  left: 42px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(760px, calc(100dvh - 48px));
+  margin: 0;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #40516a;
+  border-radius: 12px;
+  background: #101927;
+  color: #e7ecf5;
+  box-shadow: 0 16px 60px #0009;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.legend-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.legend-heading h2 { font-size: 21px; margin: 0; }
+.legend-heading button { min-height: 44px; min-width: 44px; padding: 8px; }
+.visual-legend h3 { font-size: 11px; color: #f2d18b; letter-spacing: 1.4px; text-transform: uppercase; margin: 20px 0 12px; }
+.legend-symbols { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.legend-symbols li { display: grid; grid-template-columns: 25px 1fr; align-items: center; gap: 10px; }
+.legend-dot { display: block; justify-self: center; width: 9px; height: 9px; border-radius: 50%; }
+.legend-world,.legend-moon { background: #f4f8ff; }
+.legend-moon { width: 5px; height: 5px; }
+.legend-asteroid { background: #e6ad79; }
+.legend-comet { background: #83e6f3; }
+.legend-selected { background: #f2d18b; }
+.legend-line { width: 25px; border-top: 1px solid #647891; }
+.legend-trail { border-top: 3px solid #f9d68a; }
+.legend-wake { border-top: 3px dotted #83e6f3; }
+.legend-paths strong { font-weight: 500; color: #e7ecf5; }
+.legend-hint { font-size: 11px; color: #a4b4cb; margin: 14px 0 0; }
+.legend-current { font-size: 11px; color: #f2d18b; margin: 0 0 10px; }
+.legend-scales { margin: 0; display: grid; gap: 8px; }
+.legend-scales > div { display: block; padding: 10px; border: 1px solid #304159; border-radius: 7px; }
+.legend-scales > div.is-current { border-color: #8b7750; background: #f2d18b08; }
+.legend-scales dt { font-weight: 500; color: #e7ecf5; }
+.legend-scales dd { margin: 5px 0 0; color: #a4b4cb; font-size: 11px; }
+@media(max-width:900px) {
+  .visual-legend { left: 16px; top: 50%; bottom: auto; transform: translateY(-50%); max-height: calc(100dvh - 48px); padding: 18px; }
+  .scene-tools .legend-toggle { min-height: 44px; }
+}
+.legend-scales dd { max-width: none; text-align: left; }
