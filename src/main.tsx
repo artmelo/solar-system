@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Component } from "react";
 import { createRoot } from "react-dom/client";
+import { Analytics } from "@vercel/analytics/react";
 import Scene from "./Scene";
 import CompareDialog from "./CompareDialog";
 import VisualLegend from "./VisualLegend";
@@ -752,6 +753,7 @@ function App() {
           </div>
         </div>
       )}
+      <Analytics />
     </main>
   );
 }
