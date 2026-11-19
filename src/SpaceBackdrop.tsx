@@ -2,7 +2,7 @@ import { useMemo, useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { BackSide, CanvasTexture, SRGBColorSpace, Group } from 'three';
 // Decorative distant sky, not a catalogue or a map of observed galaxy positions.
-export default function SpaceBackdrop() {
+export default function SpaceBackdrop({real}:{real:boolean}) {
   const mesh=useRef<Group>(null);
   const {camera}=useThree();
   const texture=useMemo(()=>{
@@ -38,7 +38,7 @@ export default function SpaceBackdrop() {
   useEffect(()=>()=>texture.dispose(),[texture]);
   useFrame(()=>{mesh.current?.position.copy(camera.position);});
   return <group ref={mesh}>
-    <mesh renderOrder={-100} raycast={()=>null}><sphereGeometry args={[15000,32,24]}/><meshBasicMaterial map={texture} side={BackSide} depthWrite={false} toneMapped={false}/></mesh>
-    <points renderOrder={-90} frustumCulled={false} raycast={()=>null}><bufferGeometry><bufferAttribute attach="attributes-position" args={[stars.positions,3]}/><bufferAttribute attach="attributes-color" args={[stars.colors,3]}/></bufferGeometry><pointsMaterial size={1.2} sizeAttenuation={false} vertexColors depthWrite={false} toneMapped={false}/></points>
+    <mesh renderOrder={-100} raycast={()=>null}><sphereGeometry args={[15000,32,24]}/><meshBasicMaterial map={texture} side={BackSide} color={real?'#77849a':'#c2cbd9'} depthWrite={false} toneMapped={false}/></mesh>
+    <points renderOrder={-90} frustumCulled={false} raycast={()=>null}><bufferGeometry><bufferAttribute attach="attributes-position" args={[stars.positions,3]}/><bufferAttribute attach="attributes-color" args={[stars.colors,3]}/></bufferGeometry><pointsMaterial size={1.2} sizeAttenuation={false} vertexColors transparent opacity={real?.24:.48} depthWrite={false} toneMapped={false}/></points>
   </group>;
 }

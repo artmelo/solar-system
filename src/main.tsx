@@ -25,6 +25,7 @@ import { perihelionInTimeline } from "./small-body-orbits";
 import smallCatalogue from "./small-bodies.json";
 import "./style.css";
 import "./cinematic.css";
+import "./widgets.css";
 class Boundary extends Component<
   { children: React.ReactNode },
   { failed: boolean }
@@ -52,6 +53,7 @@ function App() {
     [speed, setSpeed] = useState(1),
     [real, setReal] = useState(false),
     [trails, setTrails] = useState(false),
+    [orbits,setOrbits]=useState(true),
     [labels, setLabels] = useState(true),
     [asteroids, setAsteroids] = useState(false),
     [comets, setComets] = useState(false),
@@ -60,6 +62,15 @@ function App() {
     [home, setHome] = useState(0),
     [answer, setAnswer] = useState(""),
     [help, setHelp] = useState(false);
+  const [timeOpen,setTimeOpen]=useState(false);
+  const [planetOpen,setPlanetOpen]=useState(true);
+  const [guideOpen,setGuideOpen]=useState(true);
+  const [immersive,setImmersive]=useState(false);
+  const mainRef=useRef<HTMLElement>(null);
+  const fullscreenTrigger=useRef<HTMLButtonElement|null>(null);
+  const exitImmersive=async()=>{try{if(document.fullscreenElement===mainRef.current)await document.exitFullscreen();}catch{}setImmersive(false);requestAnimationFrame(()=>fullscreenTrigger.current?.focus({preventScroll:true}));};
+  const enterImmersive=async(trigger:HTMLButtonElement)=>{fullscreenTrigger.current=trigger;setHelp(false);setCompareOpen(false);document.querySelectorAll<HTMLElement>(':popover-open').forEach(element=>element.hidePopover());setImmersive(true);try{await mainRef.current?.requestFullscreen?.();}catch{/* The immersive layout also works when native fullscreen is unavailable. */}};
+  useEffect(()=>{const changed=()=>{if(!document.fullscreenElement){setImmersive(false);requestAnimationFrame(()=>fullscreenTrigger.current?.focus({preventScroll:true}));}};const key=(event:KeyboardEvent)=>{if(event.key==='Escape'&&immersive){void exitImmersive();}};document.addEventListener('fullscreenchange',changed);document.addEventListener('keydown',key);return()=>{document.removeEventListener('fullscreenchange',changed);document.removeEventListener('keydown',key);};},[immersive]);
   const compareTrigger=useRef<HTMLButtonElement|null>(null);
   const [compareOpen,setCompareOpen]=useState(false);
   const [comparePair,setComparePair]=useState<[Body,Body]>([planets[2],planets[3]]);
@@ -102,6 +113,7 @@ function App() {
   const family = moons.filter((b) => b.parent === parent?.name);
   const pick = (b: Body) => {
     select(b);
+    setGuideOpen(true);
     setSunDetails(b.id==='Sun');
     if (b.kind) {
       setMode("Explore");
@@ -127,7 +139,8 @@ function App() {
     setHome((n) => n + 1);
   };
   return (
-    <main data-mode={mode} data-view={landing?"landing":focus?"focus":"activity"} data-flying={flying}>
+    <main ref={mainRef} data-immersive={immersive} data-time-open={timeOpen} data-mode={mode} data-view={landing?"landing":focus?"focus":"activity"} data-flying={flying}>
+      <button className="fullscreen-back" onClick={()=>void exitImmersive()}>← Back to explorer</button>
       {compareOpen&&<CompareDialog left={comparePair[0]} right={comparePair[1]} onChange={(left,right)=>setComparePair([left,right])} onClose={()=>setCompareOpen(false)} returnFocusTo={compareTrigger.current}/>}
       <div
         className="universe"
@@ -141,7 +154,9 @@ function App() {
             selected={selected}
             select={pick}
             trails={trails}
-            labels={labels}
+            orbits={orbits}
+            immersive={immersive}
+            labels={labels&&!immersive}
             dance={mode === "Moon Dance"}
             home={home}
             asteroids={asteroids}
@@ -306,7 +321,9 @@ function App() {
           </div>
         )}
       </section>
-      <aside ref={detailsRef} aria-label="Body details">
+      <aside ref={detailsRef} aria-label="Body details" data-collapsed={!guideOpen}>
+        <button className="guide-toggle" aria-expanded={guideOpen} aria-controls="field-guide-content" onClick={()=>setGuideOpen(v=>!v)}><span>{selected.name} · Field guide</span><span aria-hidden="true">{guideOpen?'−':'+'}</span></button>
+        <div id="field-guide-content" hidden={!guideOpen}>
         <button
           className="mobile-only back-to-space"
           onClick={() => scrollTo(sceneRef.current)}
@@ -522,23 +539,21 @@ function App() {
         <button className="focus" onClick={() => setHome((n) => n + 1)}>
           ◎ Focus on {selected.name}
         </button>
+        </div>
       </aside>
-      {landing&&<nav className="planet-nav" aria-label="Choose a planet"><div className="planet-nav-heading"><span>OUR SOLAR SYSTEM</span><strong>Choose a world</strong></div>{planets.map(body=><button key={body.id} onClick={()=>pick(body)}><span className="planet-thumb" aria-hidden="true" style={{backgroundColor:body.color,backgroundImage:'url(/textures/'+(({Earth:'earth_daymap',Venus:'venus_atmosphere'} as Record<string,string>)[body.name]||body.name.toLowerCase())+'.jpg)'}}/>{body.name}</button>)}</nav>}
+      {landing&&<nav className="planet-nav" data-collapsed={!planetOpen} aria-label="Choose a planet"><button className="planet-nav-toggle" aria-expanded={planetOpen} aria-controls="planet-list" onClick={()=>setPlanetOpen(v=>!v)}><span>Planets <small>08</small></span><span aria-hidden="true">{planetOpen?'−':'+'}</span></button><div id="planet-list" hidden={!planetOpen}>{planets.map(body=><button key={body.id} onClick={()=>pick(body)}><span className="planet-thumb" aria-hidden="true" style={{backgroundColor:body.color,backgroundImage:'url(/textures/'+(({Earth:'earth_daymap',Venus:'venus_atmosphere'} as Record<string,string>)[body.name]||body.name.toLowerCase())+'.jpg)'}}/>{body.name}</button>)}</div></nav>}
       {focus&&<div className="cinema-status" role="status"><strong>{selected.name}</strong>{flying?'Approaching your world…':'Arrival view · Drag to look around'}</div>}
       <VisualLegend real={real} />
       <div className="scene-tools">
-        <button className="legend-toggle" popoverTarget="visual-legend">Legend</button>
         {!landing&&<button
           className="mobile-only mobile-details"
           onClick={() => scrollTo(detailsRef.current)}
         >
           Details: {selected.name} ↓
         </button>}
-        <button
-          onClick={overview}
-        >
-          ⌂ Overview
-        </button>
+        {!landing&&<button onClick={overview}>⌂ Overview</button>}
+        <button className="fullscreen-toggle" onClick={e=>void enterImmersive(e.currentTarget)}>⛶ Full screen</button>
+        <label><input type="checkbox" checked={orbits} onChange={e=>setOrbits(e.target.checked)}/> Orbits</label>
         <label>
           <input
             type="checkbox"
@@ -590,14 +605,10 @@ function App() {
           </>
         )}
       </div>
-      <section className="timeline" aria-label="Time Travel">
+      <section className="timeline" aria-label="Time Travel" data-collapsed={!timeOpen}>
+        <button className="time-widget-toggle" aria-expanded={timeOpen} aria-controls="time-widget-body" onClick={()=>setTimeOpen(v=>!v)}><span>Time travel <small>{playing?'Playing':'Paused'}</small></span><span>{date} <span aria-hidden="true">{timeOpen?'−':'+'}</span></span></button>
+        <div id="time-widget-body" hidden={!timeOpen}>
         <div className="time-heading">
-          <span className="eyebrow">
-            TIME TRAVEL <span className="live-dot" />
-          </span>
-          <span className="date">
-            {date} <small>UTC</small>
-          </span>
           <button
             onClick={() => {
               setDays(initial);
@@ -663,6 +674,7 @@ function App() {
           </span>
           <span>2099</span>
         </div>
+        </div>
       </section>
       <footer>
         <span className="desktop-only">
@@ -674,7 +686,9 @@ function App() {
         <span>
           KEPLERIAN MODEL <b>✧</b> JPL CATALOGUE
         </span>
+        <div className="footer-links"><button className="legend-toggle" popoverTarget="visual-legend">Legend</button>
         <a className="github-link" href="https://github.com/artmelo/solar-system" target="_blank" rel="noreferrer" aria-label="View source on GitHub"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.043-1.61-4.043-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.084 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.418-1.305.762-1.605-2.665-.304-5.467-1.334-5.467-5.93 0-1.31.468-2.38 1.236-3.22-.124-.303-.536-1.523.117-3.176 0 0 1.008-.323 3.3 1.23a11.52 11.52 0 0 1 3.003-.404c1.02.005 2.047.138 3.003.404 2.29-1.553 3.297-1.23 3.297-1.23.655 1.653.243 2.873.12 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.807 5.624-5.48 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.9-.015 3.293 0 .32.216.694.825.576C20.565 22.297 24 17.8 24 12.5 24 5.87 18.627.5 12 .5Z"/></svg><span>GitHub</span></a>
+        </div>
       </footer>
       {help && (
         <div

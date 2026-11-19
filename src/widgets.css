@@ -1,0 +1,55 @@
+/* Small, independent widgets leave the scene in charge. */
+header{background:transparent;border-bottom-color:transparent;}
+header nav{background:transparent;border-color:transparent;}
+header nav button.active{background:#c7d9f015;}
+header .brand,header nav button{text-shadow:0 1px 8px #000;}
+header .header-actions button{background:#080e1833;}
+main[data-mode="Explore"] .universe{inset:0;}
+.planet-nav .planet-nav-toggle,.guide-toggle,.time-widget-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:transparent;min-height:44px;padding:8px;font-size:12px;text-align:left;}
+.planet-nav-toggle small{font-size:9px;color:#8394ad;margin-left:8px;}
+.planet-nav #planet-list[hidden],#field-guide-content[hidden],#time-widget-body[hidden]{display:none;}
+.planet-nav #planet-list{display:grid;gap:2px;}
+.guide-toggle{font-size:11px;color:#d5dfec;padding:0 0 8px;}
+.planet-nav .planet-nav-toggle{font-weight:500;flex-shrink:0;}
+aside[data-collapsed="true"]{bottom:auto;overflow:visible;}
+aside[data-collapsed="true"] .guide-toggle{padding:0;}
+.footer-links{display:flex;align-items:center;gap:18px;}
+.footer-links .legend-toggle{font-size:10px;letter-spacing:.5px;border:0;padding:0;color:#a4b4cb;min-height:18px;background:transparent;}
+.time-widget-toggle small{font-size:9px;color:#9aaac0;display:block;margin-top:3px;}
+.time-widget-toggle>span:last-child{font-size:10px;color:#c9d6e7;white-space:nowrap;}
+.fullscreen-back{display:none;}
+@media(min-width:901px){
+ .planet-nav{width:190px;right:24px;top:116px;bottom:auto;max-height:calc(100dvh - 200px);padding:8px;gap:0;}
+ .planet-nav #planet-list button{min-height:34px;padding:4px 8px;font-size:11px;gap:10px;width:100%;}
+ .planet-nav .planet-thumb{width:24px;height:24px;}
+ aside{width:220px;right:24px;padding:12px;}
+ .timeline{left:42px;right:auto;bottom:72px;width:320px;padding:8px 12px;}
+ .timeline .time-heading{justify-content:flex-end;margin:2px 0 8px;}
+ .timeline .time-heading button{font-size:9px;}
+ .timeline .time-controls{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;}
+ .timeline .play{width:40px;height:40px;}
+ .timeline .speeds{display:grid;grid-template-columns:repeat(3,1fr);width:auto;gap:1px;}
+ .timeline .speeds button{padding:8px 4px;font-size:10px;}
+ .timeline input[type="range"]{grid-column:1/-1;width:100%;margin:0;}
+ .timeline input[type="date"]{grid-column:2;width:100%;}
+ .timeline .timeline-bottom{font-size:8px;gap:5px;margin-top:12px;}
+ .timeline .timeline-bottom span:first-child,.timeline .timeline-bottom span:last-child{display:none;}
+ .scene-tools,main[data-view="landing"] .scene-tools,main[data-view="focus"] .scene-tools{left:390px;bottom:82px;max-width:calc(100% - 432px);gap:10px;}
+ main[data-time-open="true"] .cinema-status,main[data-time-open="true"][data-mode="Explore"] .scale-note{visibility:hidden;}
+}
+@media(max-width:900px){
+ .planet-nav{padding:6px;display:block;}
+ .planet-nav #planet-list{grid-template-columns:repeat(4,minmax(0,1fr));}
+ .timeline{padding:8px 12px;}
+ .timeline .time-heading{justify-content:flex-end;}
+ .footer-links{justify-content:center;gap:24px;}
+ .footer-links .legend-toggle{min-height:44px;font-size:12px;}
+ aside[data-collapsed="true"]{padding-bottom:12px;}
+}
+main[data-immersive="true"]{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;display:block!important;padding:0!important;overflow:hidden!important;z-index:1000;}
+main[data-immersive="true"]>:not(.universe):not(.fullscreen-back){display:none!important;}
+main[data-immersive="true"] .universe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;}
+main[data-immersive="true"]>.fullscreen-back{display:inline-flex;position:absolute;left:max(20px,env(safe-area-inset-left));top:max(20px,env(safe-area-inset-top));z-index:2;min-height:44px;align-items:center;background:#0b1422dd;border-color:#596980;color:#f2d18b;backdrop-filter:blur(10px);}
+main:fullscreen{background:#030610;}
+@media(min-width:901px){main .universe{inset:0;}}
+@media(min-width:901px){aside{bottom:150px;}#field-guide-content>.eyebrow:first-of-type{display:none;}}

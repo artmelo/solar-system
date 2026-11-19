@@ -32,6 +32,8 @@ export type SceneProps = {
   selected: Body;
   select: (b: Body) => void;
   trails: boolean;
+  orbits: boolean;
+  immersive: boolean;
   labels: boolean;
   dance: boolean;
   home: number;
@@ -136,7 +138,7 @@ function Orb({
         moon={!!body.parent}
         radius={r}
       />}
-      {(labels || selected) && (
+      {labels && (
         <Label name={body.name} r={Math.max(r, 0.1)} selected={selected} />
       )}
     </group>
@@ -178,8 +180,8 @@ function World(p: SceneProps) {
   useFrame((_,dt) => {
     if(!controls.current)return;
     const target = new Vector3(...focusPoint(p.selected,p.days,p.real,p.dance));
-    const aspect=(viewport.width-(viewport.width>900&&p.overview?300:0))/Math.max(viewport.height,1);
-    const key=[p.dance?parent!.id:p.selected.id,p.real,p.dance,p.overview,p.home,viewport.width,viewport.height].join();
+    const aspect=(viewport.width-(viewport.width>900&&p.overview&&!p.immersive?220:0))/Math.max(viewport.height,1);
+    const key=[p.dance?parent!.id:p.selected.id,p.real,p.dance,p.overview,p.immersive,p.home,viewport.width,viewport.height].join();
     if(previous.current!==key){
       camera.position.sub(parallax.current);parallax.current.set(0,0,0);
       previous.current=key;
@@ -209,7 +211,7 @@ function World(p: SceneProps) {
   },-2);
   return (
     <>
-      <SpaceBackdrop/>
+      <SpaceBackdrop real={p.real}/>
       <ambientLight intensity={p.real?.22:.45} />
       <hemisphereLight args={["#c2d5ef","#27344a",p.real?.12:.55]}/>
       <directionalLight position={[-6,3,2]} intensity={1.8}/>
@@ -227,7 +229,8 @@ function World(p: SceneProps) {
           real={p.real}
           select={p.select}
           selected={p.selected.id === parent.id}
-          labels={p.labels}
+          labels={p.labels&&!p.immersive}
+          showMarker={!p.immersive}
         />
       ) : (
         <>
@@ -237,12 +240,12 @@ function World(p: SceneProps) {
             real={p.real}
             select={p.select}
             selected={p.selected.id === "Sun"}
-            labels={p.labels&&!focused}
-            showMarker={!focused||p.selected.id==="Sun"}
+            labels={p.labels&&!focused&&!p.immersive}
+            showMarker={!p.immersive&&(!focused||p.selected.id==="Sun")}
           />
           {planets.map((b) => (
             <group key={b.id}>
-              {(!focused||b.name===p.selected.parent)&&<Orbit body={b} real={p.real} days={p.days} />}
+              {p.orbits&&(!focused||b.name===p.selected.parent)&&<Orbit body={b} real={p.real} days={p.days} />}
               {p.trails&&(!focused||b.id===p.selected.id)&&<Orbit body={b} real={p.real} days={p.days} trail />}
               <Orb
                 body={b}
@@ -250,8 +253,8 @@ function World(p: SceneProps) {
                 real={p.real}
                 select={p.select}
                 selected={p.selected.id === b.id}
-                labels={p.labels&&(!focused||b.id===p.selected.id)}
-                showMarker={!focused||b.id===p.selected.id||b.name===p.selected.parent}
+                labels={p.labels&&!p.immersive&&(!focused||b.id===p.selected.id)}
+                showMarker={!p.immersive&&(!focused||b.id===p.selected.id||b.name===p.selected.parent)}
               />
             </group>
           ))}
@@ -290,7 +293,7 @@ function MoonSystem(p: SceneProps & { parent?: Body; localMoons: Body[] }) {
     <group ref={g} position={systemOrigin(p.parent, p.days, p.real, p.dance)}>
       {p.localMoons.map((b) => (
         <group key={b.id}>
-          {(p.dance || p.selected.id === b.id) && (
+          {p.orbits && (p.dance || p.selected.id === b.id) && (
             <Orbit body={b} real={p.real} local days={p.days} />
           )}
           <Orb
@@ -300,8 +303,9 @@ function MoonSystem(p: SceneProps & { parent?: Body; localMoons: Body[] }) {
             local
             select={p.select}
             selected={p.selected.id === b.id}
+            showMarker={!p.immersive}
             labels={
-              p.labels && (p.localMoons.length < 20 || p.selected.id === b.id)
+              p.labels && !p.immersive && (p.localMoons.length < 20 || p.selected.id === b.id)
             }
           />
         </group>
