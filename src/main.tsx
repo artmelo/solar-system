@@ -356,8 +356,10 @@ function App() {
                 : `PLANET ${planets.findIndex((p) => p.id === selected.id) + 1} / 08`}
         </div>
         <h2>{selected.name}</h2>
+        <div className="guide-actions">
         <button className="compare-selected" onClick={e=>openComparison(selected,e.currentTarget)}>⇄ Compare {selected.name}</button>
         {selected.id==='Earth'&&<button className="compare-selected" onClick={()=>{const moon=moons.find(b=>b.name==='Moon'&&b.parent==='Earth');if(moon){setMode('Explore');pick(moon);}}}>Explore the Moon →</button>}
+        </div>
         <NasaCarousel body={selected} />
         <p className="fact">
           {selected.fact ||
